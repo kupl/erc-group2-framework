@@ -3,7 +3,7 @@ class A() :
         self.x = x
 
     def foo(self) :
-        return self.x + "1"
+        return self.x + "1" # TypeError 발생
 
     def goo(self) :
         return self.x

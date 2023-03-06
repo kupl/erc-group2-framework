@@ -17,7 +17,7 @@ class A() :
         self.x = x
 
     def foo(self) :
-        return self.x + "1"
+        return self.x + "1" # TypeError 발생
 
     def goo(self) :
         return self.x
@@ -37,7 +37,7 @@ class B() :
 
 ```python
 #example/program/test/package1/source1_test.py
-def test_foo() :
+def test_foo() : # 음성 테스트케이스
     try:
         a = A(1)
         a.foo()
