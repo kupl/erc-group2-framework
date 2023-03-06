@@ -63,15 +63,22 @@ def test_foo() :
 프레임워크는 기본적으로 제공된 소스 코드를 테스팅 할 수 있는 기능을 제공한다. 예를 들어 주어진 입력 코드에 대하여 모든 유닛 테스트를 실행하기 위해선 다음과 같은 명령어를 가정한다:
 
 ```
-run benchmark1 --testdir benchmark1/test
+run [src_dir] --testdir [test_dir]
 ```
 
+예를들어 위의 프로젝트를 전체 테스트로 실행하는 명령어는 다음과 같다:
+```
+run example/program/src --testdir erc-group2-framework/example/program/test
+```
 특정 테스트의 실행 결과만을 확인하기 위해서 프레임워크는 각 테스트의 개별 유닛 테스트를 실행하기 위한 기능을 제공 할 수 있어야 한다, 이를 위한 명령어를 다음과 같이 가정한다:
 
 ```
-run benchmark --testsrc benchmark1/test/foo/package_test.py --testmthd method name 
+run [src_dir] --testsrc [test_file] --testmthd [test_method_name]
 ```
-
+예를 들어 첫번째 테스트의 "test_foo" 유닛 테스트의 실행을 확인하기 위한 명령어는 다음과 같다:
+```
+run example/program/src --testsrc example/program/test/first/first_test.py --testmthd test_foo
+```
 ## 오류 위치 추정기 (Fault Localization)
 
 ### 오류 위치 추정기 입출력
