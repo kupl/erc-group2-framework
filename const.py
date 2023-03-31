@@ -1,0 +1,3 @@
+FAULT_LOCALIZER_FOLDER_NAME = "fl_output"
+PATCH_GENERATE_FOLDER_NAME = "generated_patch"
+VALIDATOR_FOLDER_NAME = "result"

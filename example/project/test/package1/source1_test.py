@@ -1,4 +1,6 @@
-def test_foo() :
+from project.src.package1.source1 import A
+
+def test_foo() : # 음성 테스트케이스
     try:
         a = A(1)
         a.foo()
