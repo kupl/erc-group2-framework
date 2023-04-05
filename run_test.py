@@ -13,10 +13,6 @@ def run(test_dir, test_file=None, test_method=None) :
     pytest.main(test_script)
 
 def main() :
-    #src_dir = None
-    test_dir = None
-    test_file = None
-
     parser = argparse.ArgumentParser()
     #parser.add_argument("-s", "--src_dir", dest="src_dir", action="store", required=True, type=Path) 
     parser.add_argument("-d", "--test_dir", dest="test_dir", action="store", required=True, type=Path) 
