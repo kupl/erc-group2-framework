@@ -80,32 +80,32 @@ def test_foo() :
 하나의 프로젝트 대하여 특정 디렉토리에 있는 모든 유닛 테스트를 실행하기 명령어는 다음과 같다:
 
 ```
-run_test.py --testdir [test_dir]
+run_test.py --test_dir [test_dir]
 ```
 
 예를 들어, 위의 프로젝트를 전체 테스트로 실행하는 명령어는 다음과 같다:
 ```
-run_test.py --testdir example/project/test
+run_test.py --test_dir example/project/test
 ```
 
 특정 테스트 코드만을 테스트 하는 명령어는 다음과 같다:
 ```
-run_test.py --testdir [test_dir] --testsrc [test_file]
+run_test.py --test_dir [test_dir] --test_file [test_file.py]
 ```
 
 예를 들어, test/package1에 있는 source1_test를 실행하는 명령어는 다음과 같다:
 ```
-run_test.py --testdir example/project/test/package1 --testsrc source1_test.py
+run_test.py --test_dir example/project/test/package1 --test_file source1_test.py
 ```
 
 특정 테스트의 실행 결과만을 확인하기 위해서 프레임워크는 각 테스트 코드의 개별 유닛 테스트를 실행하기 위한 기능을 제공 할 수 있어야 한다, 이를 위한 명령어를 다음과 같이 가정한다:
 ```
-run_test.py --testdir [test_dir] --testsrc [test_file] --test_method [test_method_name]
+run_test.py --test_dir [test_dir] --test_file [test_file.py] --test_method [test_method_name]
 ```
 
 예를 들어, source1_test의 "test_foo" 유닛 테스트의 실행을 확인하기 위한 명령어는 다음과 같다:
 ```
-run_test.py example/project/src --testdir example/project/test/package1 --testsrc source1_test.py --test_method test_foo
+run_test.py example/project/src --test_dir example/project/test/package1 --test_file source1_test.py --test_method test_foo
 ```
 
 ## 오류 위치 추정기 (Fault Localization)
@@ -114,10 +114,9 @@ run_test.py example/project/src --testdir example/project/test/package1 --testsr
 오류 위치 추정기는 전체 프레임워크의 입력인 파이썬 프로젝트를 입력으로 받아, 테스트로 실행된 모든 소스코드에 대한 라인별 의심도를 출력한다.
 
 본 예제에서는 프레임워크에서 제공하는 다음의 명령어를 통해 벤치마크 프로젝트내의 모든 테스트 실행을 통한 의심도를 기록하는 상황을 가정한다:
-(comment: `run` 이외의 별도의 스크립트라고 가정하는게 나을 듯 합니다.)
 
 ```
-run example/project/src --testdir example/project/test
+run_test.py --test_dir example/project/test
 ```
 그 후 오류 위치 추정기는 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 패키지의 모든 소스코드별 라인별 의심도를 기록한 json 파일을 생성한다. 본 예시에서는 2개의 패키지 (package1, pacakage2)내의 소스코드 (source1.py, source2.py)에 대하여 다음의 두 json 파일이 오류 위치 추정기의 결과물로 생성된다:
 - example/project/fl_output/package1/source1.json
