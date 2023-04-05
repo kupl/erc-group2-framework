@@ -18,15 +18,11 @@ def run(src_dir, test_dir) :
         pass
 
     # folder where you will save the output of patch generator
-    write_directory = src_dir.parents[0] / PATCH_GENERATE_FOLDER_NAME
+    write_directory = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
     
     raise Exception("Not Implemented")
 
 def main() :
-    #src_dir = None
-    test_dir = None
-    test_file = None
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--src_dir", dest="src_dir", action="store", required=True, type=Path) 
     parser.add_argument("-d", "--test_dir", dest="test_dir", action="store", required=True, type=Path) 
