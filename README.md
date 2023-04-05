@@ -48,6 +48,8 @@ class B() :
 
 ```python
 #example/project/test/package1/source1_test.py
+from project.src.package1.source1 import A
+
 def test_foo() : # 음성 테스트케이스
     try:
         a = A(1)
@@ -62,49 +64,48 @@ def test_goo() :
 
 ```python
 #example/project/test/package2/source2_test.py
+from project.src.package2.source2 import B
+
 def test_foo() :
-	b = B()
+    b = B()
     assert b.foo() == 1
 ```
 
  위와 같이 각 테스트 파일은 pytest를 활용하여 각각의 파이썬 소스코드 내부의 개별 메소드를 테스트 할 수 있는 유닛테스트로 구성되어 있다. 위의 예제에서는 첫번째 소스 (source1.py)를 테스트 하기 위한 테스트 케이스 (source1_test.py)의 "test_foo" 메소드의 6번째 라인 실행 도중 (return self.x + "1") 타입 오류가 발생하기 때문에 해당 테스트를 음성 테스트 케이스, 그 외의 테스트 케이스를 양성 테스트 케이스로 분류한다.
 
-
-
-
 ### 테스트 실행
 
-프레임워크는 기본적으로 제공된 소스 코드를 테스팅 할 수 있는 기능을 제공한다. 
+프레임워크는 기본적으로 제공된 pytest를 활용해 소스 코드를 테스팅 할 수 있는 기능을 제공한다. 
 
-주어진 입력 코드에 대하여 특정 테스트 경로에 있는 모든 유닛 테스트를 실행하기 명령어는 다음과 같다:
+하나의 프로젝트 대하여 특정 디렉토리에 있는 모든 유닛 테스트를 실행하기 명령어는 다음과 같다:
 
 ```
-run [src_dir] --testdir [test_dir]
+run_test.py --testdir [test_dir]
 ```
 
 예를 들어, 위의 프로젝트를 전체 테스트로 실행하는 명령어는 다음과 같다:
 ```
-run example/project/src --testdir example/project/test
+run_test.py --testdir example/project/test
 ```
 
-특정 테스트 파일의 실행 결과만을 확인하는 명령어는 다음과 같다:
+특정 테스트 코드만을 테스트 하는 명령어는 다음과 같다:
 ```
-run [src_dir] --testdir [test_dir] --testsrc [test_file]
+run_test.py --testdir [test_dir] --testsrc [test_file]
 ```
 
 예를 들어, test/package1에 있는 source1_test를 실행하는 명령어는 다음과 같다:
 ```
-run example/project/src --testdir example/project/test/package1 --testsrc source1_test
+run_test.py --testdir example/project/test/package1 --testsrc source1_test.py
 ```
 
-특정 테스트의 실행 결과만을 확인하기 위해서 프레임워크는 각 테스트의 개별 유닛 테스트를 실행하기 위한 기능을 제공 할 수 있어야 한다, 이를 위한 명령어를 다음과 같이 가정한다:
+특정 테스트의 실행 결과만을 확인하기 위해서 프레임워크는 각 테스트 코드의 개별 유닛 테스트를 실행하기 위한 기능을 제공 할 수 있어야 한다, 이를 위한 명령어를 다음과 같이 가정한다:
 ```
-run [src_dir] --testdir [test_dir] --testsrc [test_file] --testmthd [test_method_name]
+run_test.py --testdir [test_dir] --testsrc [test_file] --test_method [test_method_name]
 ```
 
 예를 들어, source1_test의 "test_foo" 유닛 테스트의 실행을 확인하기 위한 명령어는 다음과 같다:
 ```
-run example/project/src --testdir example/project/test/package1 --testsrc source1_test --testmthd test_foo
+run_test.py example/project/src --testdir example/project/test/package1 --testsrc source1_test.py --test_method test_foo
 ```
 
 ## 오류 위치 추정기 (Fault Localization)
