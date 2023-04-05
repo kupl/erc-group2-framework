@@ -13,8 +13,6 @@ def run(src_dir, test_dir, test_file, test_method):
     run_validator(src_dir, test_dir)
 
 def main() :
-    test_file = None
-    test_method = None
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--src_dir", dest="src_dir", action="store", required=True, type=Path) 
