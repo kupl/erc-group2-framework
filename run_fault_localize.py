@@ -9,11 +9,11 @@ from const import (
 
 def run(src_dir, test_dir) :
     '''
-    This is the functino which run fault localization.
+    This is the function which run fault localization.
     '''
 
-    # folder where you will save the output of fault localizer
-    write_directory = src_dir.parent / FAULT_LOCALIZER_FOLDER_NAME
+    # path where you will save the output of fault localizer
+    output_path = src_dir.parent / FAULT_LOCALIZER_FOLDER_NAME / "result.json"
 
     raise Exception("Not Implemented")
 
