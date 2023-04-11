@@ -111,7 +111,7 @@ python run_test.py --test_dir example/project/test/package1 --test_file source1_
 ## 오류 위치 추정기 (Fault Localization)
 
 ### 오류 위치 추정기 입출력
-오류 위치 추정기 (`run_fault_localization.py`)는 전체 프레임워크의 입력인 파이썬 프로젝트를 입력으로 받아, 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 모든 소스코드의 라인별 의심도를 기록한 result.json 파일을 생성한다. 해당 json 파일은 다음과 형식의 key, value를 갖는다:
+오류 위치 추정기 (run_fault_localization.py)는 전체 프레임워크의 입력인 파이썬 프로젝트를 입력으로 받아, 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 모든 소스코드의 라인별 의심도를 기록한 result.json 파일을 생성한다. 해당 json 파일은 다음과 형식의 key, value를 갖는다:
 - "[source_path]:[line_number]" : [suspicious_score]
 
 본 예시에서는 의심도 계산을 위해 각 소스코드의 라인별 $오류 실행 횟수/전체 실행 횟수$ 를 기록하는 아주 기본적인 통계 기반 오류 위치 추정 기술을 가정한다. 예를 들어 첫번째 소스코드 (source1.py)에 대한 테스트 (source1_test.py)를 실행했을 때, 3번째 코드 라인 (self.x = x)는 양성 테스트 음성 테스트 모두에서 실행되고, 6번째 코드 라인 (return self.x + "1")과 9번째 코드 라인 (return self.x)은 각각 음성 테스트 양성 테스트에서만 실행된다. 이를 바탕으로 해당 소스코드에 대한 의심도를 계산하면 다음과 같은 결과물을 얻을 수 있다:
