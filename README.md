@@ -118,29 +118,18 @@ run_test.py example/project/src --test_dir example/project/test/package1 --test_
 ```
 run_test.py --test_dir example/project/test
 ```
-그 후 오류 위치 추정기는 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 패키지의 모든 소스코드별 라인별 의심도를 기록한 json 파일을 생성한다. 본 예시에서는 2개의 패키지 (package1, pacakage2)내의 소스코드 (source1.py, source2.py)에 대하여 다음의 두 json 파일이 오류 위치 추정기의 결과물로 생성된다:
-- example/project/fl_output/package1/source1.json
-- example/project/fl_output/package2/source2.json
+그 후 오류 위치 추정기는 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 패키지의 모든 소스코드별 라인별 의심도를 기록한 result.json 파일을 생성한다. 해당 json 파일은 다음과 형식의 key, value를 갖는다:
+- "[source_path]:[line_number]" : [suspicious_score]
 
 본 예시에서는 의심도 계산을 위해 각 소스코드의 라인별 $오류 실행 횟수/전체 실행 횟수$ 를 기록하는 아주 기본적인 통계 기반 오류 위치 추정 기술을 가정한다. 예를 들어 첫번째 소스코드 (source1.py)에 대한 테스트 (source1_test.py)를 실행했을 때, 3번째 코드 라인 (self.x = x)는 양성 테스트 음성 테스트 모두에서 실행되고, 6번째 코드 라인 (return self.x + "1")과 9번째 코드 라인 (return self.x)은 각각 음성 테스트 양성 테스트에서만 실행된다. 이를 바탕으로 해당 소스코드에 대한 의심도를 계산하면 다음과 같은 결과물을 얻을 수 있다:
-
-(comment: 각 파일별로 `xxx.json` 파일을 생성해서 suspicious 정보를 별도로 출력하는 것은 효율적이지 않아 보입니다. 하나의 프로젝트에 대해서 하나의 파일안에 모든 suspicious 정보를 출력하는게 나아 보입니다.)
-
 ```json
-//example/project/fl_output/package1/source1.json
+//example/project/fl_output/result.json
 {
-  "3": 0.5,
-  "6": 1,
-  "9": 0
-}
-```
-
-마찬가지로 두번째 소스 코드 (source2.py)에 대한 테스트에는 음성 테스트가 포함되어 있지 않으므로, 오류 위치 추정이 다음과 같이 계산된다:
-```json
-//example/project/fl_output/package2/source2.json
-{
-  "3": 0,
-  "6": 0
+    "src/package1/source1.py:3" : 0.5,
+    "src/package1/source1.py:6" : 1,
+    "src/package1/source1.py:9" : 0,
+    "src/package2/source2.py:3" : 0,
+    "src/package2/source2.py:6" : 0
 }
 ```
 
