@@ -2,14 +2,14 @@ import argparse
 from pathlib import Path
 
 from const import (
-    FAULT_LOCALIZER_FOLDER_NAME,
+    FAULT_LOCALIZER_OUTPUT,
     PATCH_GENERATE_FOLDER_NAME,
     VALIDATOR_FOLDER_NAME,
 )
 
 def run(src_dir, test_dir) :
     '''
-    This is the functino which run validator.
+    This is the function which run validator.
     '''
     patch_generator_folder = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
 

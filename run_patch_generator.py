@@ -2,24 +2,22 @@ import argparse
 from pathlib import Path
 
 from const import (
-    FAULT_LOCALIZER_FOLDER_NAME,
+    FAULT_LOCALIZER_OUTPUT,
     PATCH_GENERATE_FOLDER_NAME,
     VALIDATOR_FOLDER_NAME,
 )
 
 def run(src_dir, test_dir) :
     '''
-    This is the functino which run patch generator.
+    This is the function which runs patch generator.
     '''
-    fault_localizer_folder = src_dir.parent / FAULT_LOCALIZER_FOLDER_NAME
-
-    for fault_localizer_json in fault_localizer_folder.glob('**/*.json'):
-        # folder where you saved the output of fault localizer
+    fl_output_path = src_dir.parent / FAULT_LOCALIZER_OUTPUT
+    with open(fl_output_path, 'r') as f:
+        # load the fl_output
         pass
 
     # folder where you will save the output of patch generator
     write_directory = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
-    
     raise Exception("Not Implemented")
 
 def main() :

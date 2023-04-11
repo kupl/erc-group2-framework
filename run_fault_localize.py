@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 from const import (
-    FAULT_LOCALIZER_FOLDER_NAME,
+    FAULT_LOCALIZER_OUTPUT,
     PATCH_GENERATE_FOLDER_NAME,
     VALIDATOR_FOLDER_NAME,
 )
@@ -13,7 +13,7 @@ def run(src_dir, test_dir) :
     '''
 
     # path where you will save the output of fault localizer
-    output_path = src_dir.parent / FAULT_LOCALIZER_FOLDER_NAME / "result.json"
+    output_path = src_dir.parent / FAULT_LOCALIZER_OUTPUT
 
     raise Exception("Not Implemented")
 
