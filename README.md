@@ -111,7 +111,7 @@ python run_test.py --test_dir example/project/test/package1 --test_file source1_
 ## 오류 위치 추정기 (Fault Localization)
 
 ### 오류 위치 추정기 입출력
-오류 위치 추정기 (run_fault_localization.py)는 전체 프레임워크의 입력인 파이썬 프로젝트를 입력으로 받아, 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 모든 소스코드의 라인별 의심도를 기록한 result.json 파일을 생성한다. 해당 json 파일은 다음과 형식의 key, value를 갖는다:
+오류 위치 추정기는 전체 프레임워크의 입력인 파이썬 프로젝트를 입력으로 받아, 타켓 프로젝트의 "fl_output" 디렉토리에 테스트로 실행된 모든 소스코드의 라인별 의심도를 기록한 result.json 파일을 생성한다. 해당 json 파일은 다음과 형식의 key, value를 갖는다:
 - "[source_path]:[line_number]" : [suspicious_score]
 
 본 예시에서는 의심도 계산을 위해 각 소스코드의 라인별 $오류 실행 횟수/전체 실행 횟수$ 를 기록하는 아주 기본적인 통계 기반 오류 위치 추정 기술을 가정한다. 예를 들어 첫번째 소스코드 (source1.py)에 대한 테스트 (source1_test.py)를 실행했을 때, 3번째 코드 라인 (self.x = x)는 양성 테스트 음성 테스트 모두에서 실행되고, 6번째 코드 라인 (return self.x + "1")과 9번째 코드 라인 (return self.x)은 각각 음성 테스트 양성 테스트에서만 실행된다. 이를 바탕으로 해당 소스코드에 대한 의심도를 계산하면 다음과 같은 결과물을 얻을 수 있다:
@@ -125,6 +125,20 @@ python run_test.py --test_dir example/project/test/package1 --test_file source1_
     "src/package2/source2.py:6" : 0
 }
 ```
+
+전체 프레임 워크의 동작을 위해, 오류 위치 추정기 구현체 (run_fault_localize.py)에서 구현되어야 할 부분은 아래의 run 함수이다. 
+```python
+def run(src_dir, test_dir) :
+    '''
+    This is the function which run fault localization.
+    '''
+
+    # path where you will save the output of fault localizer
+    output_path = src_dir.parent / FAULT_LOCALIZER_OUTPUT
+
+    raise Exception("Not Implemented")
+```
+해당 함수는 입력으로 오류가 있는 소스코드가 포함된 프로젝트의 소스 디렉토리 (src_dir)와 해당 프로젝트를 테스트 하기위한 유닛 테스트가 포함된 테스트 디렉토리 (test_dir)를 입력으로 받아 테스트 디렉토리의 모든 테스트를 실행하여 계산된 오류 위치 추정 결과물을 대상 프로젝트 디렉토리의 "fl_output/result.json"에 기록한다.
 
 ## 패치 생성기 (Patch Generator)
 
@@ -146,18 +160,22 @@ class A() :
         return self.x
 ```
 
+전체 프레임 워크의 동작을 위해, 패치 생성기 (run_patch_generator.py)에서 구현되어야 할 부분은 아래의 run 함수이다. 
 ```python
-#example/project/generated_patch/patch2/package1/source1_patch.py
-class A() :
-    def __init__(self, x) :
-        self.x = x
+def run(src_dir, test_dir) :
+    '''
+    This is the function which runs patch generator.
+    '''
+    fl_output_path = src_dir.parent / FAULT_LOCALIZER_OUTPUT
+    with open(fl_output_path, 'r') as f:
+        # load the fl_output
+        pass
 
-    def foo(self) :
-        return self.x + int("1")
-
-    def goo(self) :
-        return self.x
+    # folder where you will save the output of patch generator
+    write_directory = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
+    raise Exception("Not Implemented")
 ```
+해당 함수는 입력으로 오류가 있는 소스코드가 포함된 프로젝트의 소스 디렉토리 (src_dir)와 해당 프로젝트를 테스트 하기위한 유닛 테스트가 포함된 테스트 디렉토리 (test_dir)를 입력으로 받는다. 이때 해당 소스 디렉토리의 상위 경로에 오류 위치 추정기 결과물 (fl_output_path)가 있음을 가정한다. 본 함수는 오류 위치 추정기 결과물을 사용하여, 입력 테스트의 모든 테스트를 통과한 패치의 집합을 해당 프로젝트 폴더의 "generated_patches"에 저장한다
 
 ## 패치 검증기 (Patch Validator)
 
