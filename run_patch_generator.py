@@ -7,6 +7,14 @@ import ast
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteriaList, StoppingCriteria
 
+
+from const import (
+    FAULT_LOCALIZER_OUTPUT,
+    PATCH_GENERATE_FOLDER_NAME,
+    VALIDATOR_FOLDER_NAME,
+)
+
+
 class KeywordsStoppingCriteria(StoppingCriteria):
     def __init__(self, keywords_ids:list, tnizer):
         self.keywords = keywords_ids
@@ -44,19 +52,15 @@ class SantaCoderProxy(CodeGenerator):
 
         stopping_criteria = StoppingCriteriaList([stop_criteria])
 
-        # TODO: adjust prompt size.
+        if inputs.size(dim=1) > (self.max_length/2):
+            inputs = inputs[:, [-(self.max_length/2):]]
+            
         outputs = self.model.generate(inputs, max_length=self.max_length, stopping_criteria=stopping_criteria, pad_token_id=self.tokenizer.eos_token_id)
 
         offset = len(prompt)-1
 
         return str(self.tokenizer.decode(outputs[0][:-1]))[offset:]
 
-
-from const import (
-    FAULT_LOCALIZER_OUTPUT,
-    PATCH_GENERATE_FOLDER_NAME,
-    VALIDATOR_FOLDER_NAME,
-)
 
 def parse_file(fname):
     with open(fname) as f:
