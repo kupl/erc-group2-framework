@@ -158,4 +158,4 @@ def main() :
     run(args.src_dir, args.test_dir)
 
 if __name__ == "__main__" :
-    # main()
+    main()
