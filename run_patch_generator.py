@@ -25,9 +25,6 @@ class KeywordsStoppingCriteria(StoppingCriteria):
         self.line_feed = line_feed
 
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-        # token = str(self.tokenizer.decode(input_ids[0][-1]))
-        # if "\n" in token:
-        #     print(input_ids[0][-1])
         if self.line_feed:
             token = str(self.tokenizer.decode(input_ids[0][-1]))
             if token.strip() == "" and "\n" in token:
@@ -56,7 +53,6 @@ class SantaCoderProxy(CodeGenerator):
 
     def generate(self, prompt: str, stop_words: List[str]):
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
-        # print(inputs.size())
 
         stop_ids = [self.tokenizer.encode(w)[0] for w in stop_words]
         stop_criteria = KeywordsStoppingCriteria(stop_ids, self.tokenizer, line_feed=("\n" in stop_words))
@@ -65,7 +61,6 @@ class SantaCoderProxy(CodeGenerator):
 
         if inputs.size(dim=1) > (self.max_length/2):
             inputs = inputs[:,-(round(self.max_length/2)):]
-            # print(inputs.size())
 
         outputs = self.model.generate(inputs, max_length=self.max_length, stopping_criteria=stopping_criteria, pad_token_id=self.tokenizer.eos_token_id)
 
@@ -104,8 +99,6 @@ def detect_function(filename, lines):
             while curline >= 0 and (lines[curline-1].strip().startswith("#") or lines[curline-1].strip() == ""):
                 curline -= 1
 
-
-            # funcs[func_begin] = (item.name, func_sig_end+1)
             funcs[func_begin] = (item.name, curline+1)
 
     return dict(sorted(funcs.items()))
@@ -138,7 +131,8 @@ def run(src_dir, test_dir):
         suffix_content = filecontent[line:]
 
         generated = generator.generate("".join(prefix_content), ["\n"])
-        # print(generated)
+        print(f"Patch number: {patchcount}")
+        print(f"Generated patch: {generated}")
 
         patch_path = src_path.parent / PATCH_GENERATE_FOLDER_NAME / f"patch{patchcount}" / file_path
         os.makedirs(os.path.dirname(patch_path), exist_ok=True)
@@ -164,5 +158,4 @@ def main() :
     run(args.src_dir, args.test_dir)
 
 if __name__ == "__main__" :
-    run("/Users/darkrsw/git/erc-group2-framework/example/real/src", "/Users/darkrsw/git/erc-group2-framework/example/real/test")
     # main()
