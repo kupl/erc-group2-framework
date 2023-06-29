@@ -6,6 +6,8 @@ import json
 import ast
 import torch
 
+import os
+
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteriaList, StoppingCriteria
 
 
@@ -17,11 +19,19 @@ from const import (
 
 
 class KeywordsStoppingCriteria(StoppingCriteria):
-    def __init__(self, keywords_ids:list, tnizer):
+    def __init__(self, keywords_ids:list, tnizer, line_feed=False):
         self.keywords = keywords_ids
         self.tokenizer = tnizer
+        self.line_feed = line_feed
 
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+        # token = str(self.tokenizer.decode(input_ids[0][-1]))
+        # if "\n" in token:
+        #     print(input_ids[0][-1])
+        if self.line_feed:
+            token = str(self.tokenizer.decode(input_ids[0][-1]))
+            if token.strip() == "" and "\n" in token:
+                return True
         if input_ids[0][-1] in self.keywords:
             return True
         return False
@@ -38,7 +48,7 @@ class SantaCoderProxy(CodeGenerator):
     def __init__(self, ck: str = "bigcode/santacoder", rev: str = "132eb6b6cedaf579c2f333f1ecd78a16d7e45978"):
         super().__init__(ck, rev)
         self.max_length = 2048
-        self.device = "cuda" # TODO: make it automatic.
+        self.device = "mps" # TODO: make it automatic.
         self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint, revision=self.revision)
         self.model = AutoModelForCausalLM.from_pretrained(self.checkpoint, revision=self.revision, trust_remote_code=True).to(self.device)
         print("model initialized.")
@@ -46,15 +56,16 @@ class SantaCoderProxy(CodeGenerator):
 
     def generate(self, prompt: str, stop_words: List[str]):
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
-        print(inputs.size())
+        # print(inputs.size())
 
         stop_ids = [self.tokenizer.encode(w)[0] for w in stop_words]
-        stop_criteria = KeywordsStoppingCriteria(stop_ids, self.tokenizer)
+        stop_criteria = KeywordsStoppingCriteria(stop_ids, self.tokenizer, line_feed=("\n" in stop_words))
 
         stopping_criteria = StoppingCriteriaList([stop_criteria])
 
         if inputs.size(dim=1) > (self.max_length/2):
-            inputs = inputs[:, [-(self.max_length/2):-1]]
+            inputs = inputs[:,-(round(self.max_length/2)):]
+            # print(inputs.size())
 
         outputs = self.model.generate(inputs, max_length=self.max_length, stopping_criteria=stopping_criteria, pad_token_id=self.tokenizer.eos_token_id)
 
@@ -109,7 +120,10 @@ def run(src_dir, test_dir):
         fl_list = json.load(f)
         fl_dict_sorted = dict(sorted(fl_list.items(), key=lambda item: item[1], reverse=True))
 
+    generator = SantaCoderProxy()
+
     # TODO: currently, line-by-line generation.
+    patchcount = 0
     for loc, score in fl_dict_sorted.items():
         if not (score > 0.0):
             continue # ignore if the score is 0.0.
@@ -123,14 +137,20 @@ def run(src_dir, test_dir):
         prefix_content = filecontent[:line-1]
         suffix_content = filecontent[line:]
 
-        generator = SantaCoderProxy()
+        generated = generator.generate("".join(prefix_content), ["\n"])
+        # print(generated)
 
-        generated = generator.generate("\n".join(prefix_content), ['\n', ' \n'])
-        print(generated)
+        patch_path = src_path.parent / PATCH_GENERATE_FOLDER_NAME / f"patch{patchcount}" / file_path
+        os.makedirs(os.path.dirname(patch_path), exist_ok=True)
+        patchcount += 1
 
-    # folder where you will save the output of patch generator
-    # write_directory = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
-    # raise Exception("Not Implemented")
+        with open(patch_path, "w") as f:
+            for line in prefix_content:
+                f.write("%s" % line)
+            f.write("%s\n" % generated)
+            for line in suffix_content:
+                f.write("%s" % line)
+
 
 def main() :
     parser = argparse.ArgumentParser()
