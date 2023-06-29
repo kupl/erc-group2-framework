@@ -53,8 +53,8 @@ class SantaCoderProxy(CodeGenerator):
         stopping_criteria = StoppingCriteriaList([stop_criteria])
 
         if inputs.size(dim=1) > (self.max_length/2):
-            inputs = inputs[:, [-(self.max_length/2):]]
-            
+            inputs = inputs[:, [-(self.max_length/2):-1]]
+
         outputs = self.model.generate(inputs, max_length=self.max_length, stopping_criteria=stopping_criteria, pad_token_id=self.tokenizer.eos_token_id)
 
         offset = len(prompt)-1
