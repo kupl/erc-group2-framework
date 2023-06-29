@@ -45,7 +45,7 @@ class SantaCoderProxy(CodeGenerator):
     def __init__(self, ck: str = "bigcode/santacoder", rev: str = "132eb6b6cedaf579c2f333f1ecd78a16d7e45978"):
         super().__init__(ck, rev)
         self.max_length = 2048
-        self.device = "mps" # TODO: make it automatic.
+        self.device = "cuda" # TODO: make it automatic. "cuda" for GPU, "mps" for M1 Mac, and "cpu" for everything else.
         self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint, revision=self.revision)
         self.model = AutoModelForCausalLM.from_pretrained(self.checkpoint, revision=self.revision, trust_remote_code=True).to(self.device)
         print("model initialized.")
