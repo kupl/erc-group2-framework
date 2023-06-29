@@ -4,6 +4,7 @@ from typing import List
 
 import json
 import ast
+import torch
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteriaList, StoppingCriteria
 
@@ -124,7 +125,7 @@ def run(src_dir, test_dir):
 
         generator = SantaCoderProxy()
 
-        generated = generator.generate(context, ['\n', ' \n'])
+        generated = generator.generate("\n".join(prefix_content), ['\n', ' \n'])
         print(generated)
 
     # folder where you will save the output of patch generator
