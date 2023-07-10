@@ -1,2 +1,6 @@
-pytest
-numpy
+pytest==7.4.0
+numpy==1.25.0
+openai==0.14.0
+tqdm==4.62.3
+transformers==4.30.2
+torch==2.0.1
