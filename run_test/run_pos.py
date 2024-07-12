@@ -15,6 +15,10 @@ import logger
 
 logger = logger.set_logger(os.path.basename(__file__))
 
+from rich.live import Live
+from config import MY_PANEL
+
+
 CUR_DIR = os.getcwd()
 
 def preprocessing(project_name) :
@@ -30,10 +34,18 @@ def preprocessing(project_name) :
     test_option = pytest_option[project_name]['pos']
 
     collect_types.init_types_collection(negative_info=neg)
-    # f = io.StringIO()
-    logger.info("Run Positive Test Cases")
-    with collect_types.collect():
-        pytest.main(test_option)
+    f = io.StringIO()
+    logger.info("Run Positive Test Cases...")
+    with redirect_stdout(f):
+        with collect_types.collect():
+            pytest.main(test_option)
+    logger.info("Run Positive Test Cases... Done!")
+    # with Live(MY_PANEL.get_panel("Running Positive Test Cases..."), refresh_per_second=20) as live:
+    #     with redirect_stdout(f):
+    #         with collect_types.collect():
+    #             pytest.main(test_option)
+
+    #     live.update(MY_PANEL.update("Running Positive Test Cases... Done!"))
 
     args, result, localize = collect_types.pos_stats()
     

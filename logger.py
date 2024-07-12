@@ -14,8 +14,8 @@ def set_logger(log_path) -> logging.Logger:
     )
     logger = logging.getLogger("rich")
 
-    file_handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
-    file_handler.setFormatter(logging.Formatter(FILE_HANDLER_FORMAT))
-    logger.addHandler(file_handler)
+    # file_handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
+    # file_handler.setFormatter(logging.Formatter(FILE_HANDLER_FORMAT))
+    # logger.addHandler(file_handler)
 
     return logger

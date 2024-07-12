@@ -9,10 +9,10 @@ import logger
 logger = logger.set_logger(os.path.basename(__file__))
 
 def run(test_dir, test_file=None, test_method=None) :
-    logger.info("Run Test")
+    # logger.info("Run Test")
     run_neg.preprocessing('real')
     run_pos.preprocessing('real')
-    logger.info("Done Test")
+    # logger.info("Done Test")
 
 def main() :
     parser = argparse.ArgumentParser()

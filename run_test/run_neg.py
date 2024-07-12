@@ -10,9 +10,13 @@ import subprocess
 import shutil
 from contextlib import redirect_stdout
 import io
-import logger
 
+import logger
 logger = logger.set_logger(os.path.basename(__file__))
+
+from rich.live import Live
+from config import MY_PANEL
+
 
 # def running() :
 #     with open('../pyter/pytest.json', 'r') as readfile :
@@ -42,11 +46,21 @@ def preprocessing(project_name) :
 
 
     collect_types.init_types_collection(test_option=test_option, test_func=test_methods)
-    # f = io.StringIO()
-    logger.info("Run Negative Test Cases")
-    with collect_types.collect():
-        #print(test_option)
-        pytest.main(test_option)
+    f = io.StringIO()
+    logger.info("Run Negative Test Cases...")
+    with redirect_stdout(f):
+        with collect_types.collect():
+            #print(test_option)
+            pytest.main(test_option)
+    logger.info("Run Negative Test Cases... Done!")
+
+    # with Live(MY_PANEL.get_panel("Running Negative Test Cases..."), refresh_per_second=20) as live:
+    #     with redirect_stdout(f):
+    #         with collect_types.collect():
+    #             #print(test_option)
+    #             pytest.main(test_option)
+        
+    #     live.update(MY_PANEL.update("Running Negative Test Cases... Done!"))
 
     err, msg, result, localize, additional = collect_types.my_stats()
     
