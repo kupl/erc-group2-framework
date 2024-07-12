@@ -2,9 +2,9 @@
 Template에 난 hole을 채워주는 synthesizer입니다
 '''
 import ast
-from template import Template, FindTemplate
+from .template import Template, FindTemplate
 from .return_type_inference import ReturnInference
-from util import abstract_output_types, is_numpy_type, find_dtype, FindRaise, compare_ast
+from util import abstract_output_types, is_numpy_type, find_dtype, compare_ast
 from copy import deepcopy
 
 from .run_patch_generator import save_patch

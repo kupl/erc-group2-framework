@@ -16,9 +16,8 @@ from const import (
 )
 
 from util import abstract_type_list
-from template import FindTemplate
 from .add_guard import AddGuard
-from .template import TemplateMethod, BASIC, MakeTemplate
+from .template import FindTemplate, TemplateMethod, BASIC, MakeTemplate
 from .select_template import Selector
 from .synthesize import Synthesize
 
@@ -26,11 +25,11 @@ class MyAST() :
     def __init__(self, usage_file) :
         self.usage_file = usage_file
 
-    def files_to_asts(self, dir, project) :
+    def files_to_asts(self, dir) :
         asts = {}
         files_src = {}
 
-        for filename in glob.iglob(dir + '/' + project + "/**/*.py", recursive=True) :
+        for filename in glob.iglob(dir + "/**/*.py", recursive=True) :
             if not filename in self.usage_file : # 안쓰인 파일은 스킵
                 continue
 
@@ -47,8 +46,8 @@ class MyAST() :
         return asts, files_src
 
     # project/test_number 의 파일들을 읽어오는 것
-    def get_asts(self, dir, project) :
-        asts, files_src = self.files_to_asts(dir, project)
+    def get_asts(self, dir) :
+        asts, files_src = self.files_to_asts(dir)
 
         return asts, files_src
 
@@ -68,7 +67,7 @@ def save_patch(patch, target):
 def get_neg_filename_funcname(neg_info) :
     return (neg_info['info']['filename'], neg_info['info']['funcname'])
 
-def run(src_dir, project):
+def run(src_dir):
     '''
     This is the function which runs patch generator.
     '''
@@ -97,7 +96,7 @@ def run(src_dir, project):
         usage_file.add(filename)
 
     my_ast = MyAST(usage_file)
-    files, files_src = my_ast.get_asts(src_dir, project)
+    files, files_src = my_ast.get_asts(src_dir)
     synthe = Synthesize(files_src, files, neg_func_infos)
 
     for rank_by_type in ranking_localize:

@@ -1,7 +1,7 @@
 
 from util import abstract_type
 from copy import copy
-from template import Template, NONE_PATCH, DEFAULT
+from .template import Template, NONE_PATCH, DEFAULT
 # from pprint import pprint
 
 class Selector() :
