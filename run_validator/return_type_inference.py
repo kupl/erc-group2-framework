@@ -3,30 +3,52 @@ retunr type 추론 하는 곳입니다
 '''
 
 import ast 
-from util import FindTargetFunc
-from .error_analysis import ErrorAnalysis
+from run_patch_generator.error_analysis import ErrorAnalysis
+
+class FindTargetFunc(ast.NodeVisitor) :
+    def __init__(self, target) :
+        self.target = target
+        self.function_node = None
+
+    def visit_AsyncFunctionDef(self, node) :
+        prev = self.function_node
+        self.function_node = node
+        self.generic_visit(node)
+        self.function_node = prev
+
+    def visit_FunctionDef(self, node) :
+        prev = self.function_node
+        self.function_node = node
+        self.generic_visit(node)
+        self.function_node = prev
+
+    def generic_visit(self, node) :
+        if ast.unparse(node) is ast.unparse(self.target) :
+            raise Exception
+
+        super().generic_visit(node)
+
+    def get_func(self, node) :
+        try :
+            self.visit(node)
+        except :
+            pass
+        return self.function_node
 
 
 class ReturnInference(ast.NodeVisitor):
-    def __init__(self, target, neg_args, neg_file_node, pos_func_infos, skip_arg=None) :
+    def __init__(self, target, neg_args, neg_file_node, pos_func_infos) :
         self.return_typ_list = list()
         self.target = target
         self.neg_args = neg_args
         self.neg_file_node = neg_file_node
         self.pos_func_infos = pos_func_infos
-        self.skip_arg = skip_arg
 
     def visit_Return(self, node) :
-        
-        if node is self.target :
-            return
         if hasattr(node, 'value') :
             expr = node.value
 
             if expr is None :
-                return 
-
-            if self.skip_arg and self.skip_arg == ast.unparse(expr) :
                 return 
 
             if isinstance(expr, ast.Constant) :

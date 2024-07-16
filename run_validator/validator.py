@@ -158,6 +158,7 @@ class Validator() :
 
     def validate_neg(self, test, total_test_num) :
         out, err = self.exec_prog.execute_neg()
+
         result = self.validate_message(out, err, test, total_test_num)
 
         return result
@@ -168,7 +169,7 @@ class Validator() :
 
         return result
 
-    def validate(self, node, filename, target, test, total_test_num) : 
+    def validate(self, node, filename, target, test, total_test_num=0) : 
         #print(ast.dump(node, include_attributes=True, indent=4))
         skip = False
         for child in ast.walk(node) :
@@ -206,16 +207,6 @@ class Validator() :
         try :
             with open(filename, "w+") as f :
                 f.write(new_file)
-
-            #print(filename, 'validate')
-            #if target :
-            #    print(ast.unparse(ast.fix_missing_locations(target[0])))
-
-            #print(new_file)
-            #input()
-            
-            
-            
 
             if self.validate_neg(test, total_test_num) and self.validate_pos() :
                 raise PassAllTests(filename, node, test, targets=target)

@@ -3,11 +3,10 @@ Template에 난 hole을 채워주는 synthesizer입니다
 '''
 import ast
 from .template import Template, FindTemplate
-from .return_type_inference import ReturnInference
 from util import abstract_output_types, is_numpy_type, find_dtype, compare_ast
 from copy import deepcopy
 
-from .run_patch_generator import save_patch
+from .save_patch import save_patch
 
 class ConstantMutate(ast.NodeVisitor) :
     def __init__(self, node, constant_dict, to_typ=None) :
@@ -76,10 +75,11 @@ class TemplateCompeleter(ast.NodeVisitor) :
         output_types = []
         abs_return_types = abstract_output_types(self.filename, self.classname, self.pos_func_infos)
 
-        infer = ReturnInference(self.target, self.neg_args, self.node, self.pos_func_infos, skip_arg)
-        infer_list = infer.get_return_typ_list(self.node)
+        # infer = ReturnInference(self.target, self.neg_args, self.node, self.pos_func_infos, skip_arg)
+        # infer_list = infer.get_return_typ_list(self.node)
+        basic_types = ['int', 'bool', 'str', 'bytes', 'None']
 
-        output_types.extend(infer_list)
+        output_types.extend(basic_types)
 
 
         for output_type in output_types :
@@ -108,7 +108,7 @@ class TemplateCompeleter(ast.NodeVisitor) :
 
         if self.func_patch :
             #print(self.func_patch)
-            for return_type in abs_return_types :
+            for return_type in abs_return_types:
                 if return_type == 'int' :
                     return_expr_list.append(self.make_constant(0))
 
@@ -250,14 +250,24 @@ class TemplateCompeleter(ast.NodeVisitor) :
         #             return_list.append(return_self)
 
         #         break
+        def get_type(node):
+            if isinstance(node, ast.Constant):
+                return type(node.value).__name__
+            return "Unknown"
 
-        for return_expr in return_list :
-            return_result.append(ast.Return(value=return_expr)) 
+        for return_expr in return_list:
+            patch_info =  {
+                "patchType": "return", 
+                "patchValue": get_type(return_expr),
+                "neg_args": self.neg_args,
+                "node": ast.unparse(self.node)
+            }
+            return_result.append((ast.Return(value=return_expr), patch_info)) 
         #'''
 
-        return_result = list(dict.fromkeys(return_result))
-
-        return return_result
+        # return_result = list(dict.fromkeys(return_result))
+        self.complete_list.extend(return_result)
+        return self.complete_list
 
         # if self.context_score is None :
         #     self.complete_list.extend(return_result)
@@ -324,41 +334,42 @@ class TemplateCompeleter(ast.NodeVisitor) :
         # return self.complete_list
 
     def synthesize_return(self, arg) :
-        '''
-        Todo :
-        function return type을 받아와서 기본 값 리턴하기
-        같은 함수 return statement 이용
-        '''
-        context_score = self.context_score
-        if context_score is None and self.context_aware is not None :
-            context_score = self.context_aware.extract_score(self.target, [self.node])
+        # context_score = self.context_score
+        # if context_score is None and self.context_aware is not None :
+        #     context_score = self.context_aware.extract_score(self.target, [self.node])
 
-        if context_score is not None :
-            candidates = list(map(lambda x : x[0], context_score))
-            candidates = list(dict.fromkeys(candidates))
-        else :
-            candidates = []
+        # if context_score is not None :
+        #     candidates = list(map(lambda x : x[0], context_score))
+        #     candidates = list(dict.fromkeys(candidates))
+        # else :
+        #     candidates = []
 
         return_list = self.extract_return_type(arg)
 
-        for candidate in candidates :
-            if isinstance(candidate, ast.Return) :
-                return_self = ast.Name(id=arg, ctx=ast.Load())
-                return_list.append(return_self)
+        # for candidate in candidates :
+        #     if isinstance(candidate, ast.Return) :
+        #         return_self = ast.Name(id=arg, ctx=ast.Load())
+        #         return_list.append(return_self)
 
-                break
-
+        #         break
+        def get_type(node):
+            if isinstance(node, ast.Constant):
+                return type(node.value).__name__
+            return "Unknown"
+        
         for return_expr in return_list :
-            self.complete_list.append(return_expr)
+            
+            patch_info =  {
+                "patchType": "return", 
+                "patchValue": get_type(return_expr),
+                "neg_args": self.neg_args,
+                "node": ast.unparse(self.node)
+            }
+            self.complete_list.append((return_expr, patch_info))
 
         return self.complete_list
     
     def synthesize_typecasting(self, from_typ, to_typ, args, node) :
-        '''
-        Todo :
-        이거도 잘 해야대는데 ㅋ
-        '''
-
         #print(to_typ) # 여서 numpy.ndarray<datetime64 로 뒤에 > 이게 잘림 
         if args == 'constant' :
             mutator = ConstantMutate(node, self.neg_additional['constant'])
@@ -447,14 +458,12 @@ class TemplateInserter(ast.NodeTransformer) :
 
 
 class TemplateSynthesizer(ast.NodeTransformer) :
-    def __init__(self, filename, funcname, classname, neg_args, pos_func_infos, context_aware, context_score, neg_additional, test, final, func_patch=False) :
+    def __init__(self, filename, funcname, classname, neg_args, pos_func_infos, neg_additional, final, func_patch=False) :
         self.filename = filename
         self.funcname = funcname
         self.classname = classname
         self.neg_args = neg_args
         self.pos_func_infos = pos_func_infos
-        self.context_aware = context_aware
-        self.context_score = context_score
         self.neg_additional = neg_additional
         self.final = final
         self.func_patch = func_patch
@@ -478,7 +487,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
 
         result = list()
         for target in targets :
-            completer = TemplateCompeleter(node, target, self.filename, self.funcname, self.classname, self.neg_args, self.pos_func_infos, self.context_aware, self.context_score, self.neg_additional, self.final, self.func_patch)
+            completer = TemplateCompeleter(node, target, self.filename, self.funcname, self.classname, self.neg_args, self.pos_func_infos, self.neg_additional, self.final, self.func_patch)
             complete_list = completer.get_complete_list(target)
 
             no_add = False
@@ -503,6 +512,11 @@ class TemplateSynthesizer(ast.NodeTransformer) :
                 seen = set()
                 res = []
                 for x in lst:
+                    if isinstance(x, tuple):
+                        origin = x
+                        x = x[0]
+                    else:
+                        origin = x
                     not_add = False
                     for y in seen :
                         if compare_ast(x, y) :
@@ -511,7 +525,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
 
                     if not_add :
                         continue
-                    res.append(x)
+                    res.append(origin)
                     seen.add(x)
                 return res
 
@@ -543,7 +557,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
             #target = target[0] # 패치결과가 없는거는 single? 전혀아님
 
             target = targets[0]
-            save_patch(node, targets)
+            save_patch(node, target, filename=self.filename)
             return
 
         import itertools
@@ -554,9 +568,14 @@ class TemplateSynthesizer(ast.NodeTransformer) :
             templates = list()
 
             complete_num = 0
+            patch_info = {}
             for i, complete in enumerate(completes) :
                 if complete == 'empty' :
                     continue
+
+                if isinstance(complete, tuple):
+                    patch_info = complete[1]
+                    complete = complete[0]
                     
                 template, target = inserter.modify_node(complete, targets[i])
 
@@ -572,7 +591,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
 
             #print("do validate")
             target = targets[0]
-            save_patch(final_node, targets)
+            save_patch(final_node, target, filename=self.filename, patch_info=patch_info)
 
             # 돌려놓기
             for i, template in enumerate(templates) :

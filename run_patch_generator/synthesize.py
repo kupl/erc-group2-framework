@@ -4,7 +4,6 @@ from .template_synthesizer import TemplateSynthesizer
 import ast
 from enum import Enum
 
-
 class VarType(Enum) :
     Args = 1 # 일반 변수
     VarArg = 2 # *args
@@ -160,7 +159,7 @@ class Synthesize() :
 
     # file마다 local 정보 추려내기
     def extract_files_info (self, files) :
-        info = local_info.LocalInfo()
+        info = LocalInfo()
 
         file_info = {}
 
@@ -176,21 +175,19 @@ class Synthesize() :
             if hasattr(node, "mark") and node.mark :
                 return node
 
-    def synthesize(self, node, filename, funcname, classname, neg_args, pos_func_infos, components, context_aware, context_score, neg_additional, test, total_test_num, final=False, func_patch=False) :
+    def synthesize(self, node, filename, funcname, classname, neg_args, pos_func_infos, neg_additional, final=False, func_patch=False) :
         '''
         타입 체킹을 할 var를 고르고
         synthesize를 하자
         '''
         self.filename = filename
         self.origin_node = node
-        self.components = components
-        self.context_aware = context_aware
 
 
         '''
         template부터 합성해보자
         '''
-        temp_synthesize = TemplateSynthesizer(filename, funcname, classname, neg_args, pos_func_infos, context_aware, context_score, neg_additional, test, total_test_num, final, func_patch)
+        temp_synthesize = TemplateSynthesizer(filename, funcname, classname, neg_args, pos_func_infos, neg_additional, final=final, func_patch=func_patch)
         temp_synthesize.template_synthesize(node)
 
         return

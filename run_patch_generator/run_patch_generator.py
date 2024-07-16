@@ -20,6 +20,20 @@ from .add_guard import AddGuard
 from .template import FindTemplate, TemplateMethod, BASIC, MakeTemplate
 from .select_template import Selector
 from .synthesize import Synthesize
+from .save_patch import save_patch, save_patch_info, PATCH_COUNT
+from . import extract_info
+
+import logger
+logger = logger.set_logger(os.path.basename(__file__))
+
+from rich.console import Console
+from rich.live import Live
+from rich.spinner import Spinner
+from rich.panel import Panel
+
+# Configure the logger
+console = Console()
+
 
 class MyAST() :
     def __init__(self, usage_file) :
@@ -50,19 +64,6 @@ class MyAST() :
         asts, files_src = self.files_to_asts(dir)
 
         return asts, files_src
-
-PATCH_COUNT = 0
-
-def save_patch(patch, target):
-    global PATCH_COUNT
-    directory = Path(os.getcwd() + "/test_info/pytest-real")
-
-    with open(directory / PATCH_GENERATE_FOLDER_NAME / f'{PATCH_COUNT+1}.py', 'w') as f:
-        f.write(ast.unparse(patch))
-    
-    with open(directory / VALIDATOR_FOLDER_NAME / f'{PATCH_COUNT+1}-target.json', 'w') as f:
-        f.write(ast.unparse(target))
-    PATCH_COUNT += 1
 
 def get_neg_filename_funcname(neg_info) :
     return (neg_info['info']['filename'], neg_info['info']['funcname'])
@@ -99,153 +100,168 @@ def run(src_dir):
     files, files_src = my_ast.get_asts(src_dir)
     synthe = Synthesize(files_src, files, neg_func_infos)
 
-    for rank_by_type in ranking_localize:
-        for localize_list in rank_by_type.values():
-            for localize in localize_list:
-                (filename, funcname, localize_line) = localize['localize']
-                arg_name = localize['info']['name']
+    with Live(console=console, refresh_per_second=5) as live:
+        spinner = Spinner("dots", text="[cyan]Generating Patches...[/cyan]")
+        live.update(Panel(spinner))
+        for rank_by_type in ranking_localize:
+            for localize_list in rank_by_type.values():
+                for localize in localize_list:
+                    from .save_patch import PATCH_COUNT
+                    spinner = Spinner("dots", text=f"[cyan]Generating Patches...[/cyan] {PATCH_COUNT} patches generated")
 
-                for neg_info in neg_infos :
-                    (neg_filename, neg_funcname) = get_neg_filename_funcname(neg_info)
+                    live.update(Panel(spinner))
+                    (filename, funcname, localize_line) = localize['localize']
+                    arg_name = localize['info']['name']
 
-                    if neg_filename == filename and neg_funcname == funcname :
-                        neg_args = dict()
-                        try :
-                            neg_args[arg_name] = neg_info['args'][arg_name]
-                        except :
-                            # 같은 line 다른 neg_info
-                            continue
+                    for neg_info in neg_infos :
+                        (neg_filename, neg_funcname) = get_neg_filename_funcname(neg_info)
 
-                        neg_lineno = neg_info['info']['line']
                         try:
                             neg_file_node = deepcopy(files[neg_filename])
                         except Exception as e :
-                            print(neg_filename, "not exists")
+                            logger.DEBUG(neg_filename, "not exists")
                             continue
-                        neg_classname = neg_info['info']['classname']
-                        test = set(neg_info['idx'])
+                        error_stmt = extract_info.find_error_stmt(neg_file_node, int(localize_line))
 
-                        try :
-                            pos_samples = pos_info[neg_filename][str(neg_lineno)]
-                        except Exception as e:
-                            pos_samples = []
-
-                        pos_typs = set([])
-                        for pos_sample in pos_samples :
-                            typ = pos_sample['info'].get(arg_name, None)
-                            if typ is None :
+                        if neg_filename == filename and neg_funcname == funcname :
+                            neg_args = dict()
+                            try :
+                                neg_args[arg_name] = neg_info['args'][arg_name]
+                            except :
+                                # 같은 line 다른 neg_info
                                 continue
 
-                            pos_typs.add(typ)
+                            neg_lineno = neg_info['info']['line']
+                            try:
+                                neg_file_node = deepcopy(files[neg_filename])
+                            except Exception as e :
+                                print(neg_filename, "not exists")
+                                continue
+                            neg_classname = neg_info['info']['classname']
+                            test = set(neg_info['idx'])
 
-                # Neg Guard
+                            try :
+                                pos_samples = pos_info[neg_filename][str(neg_lineno)]
+                            except Exception as e:
+                                pos_samples = []
 
-                error_is_if_stmt = False
-                if isinstance(error_stmt, ast.If) :
-                    error_is_if_stmt = True
+                            pos_typs = set([])
+                            for pos_sample in pos_samples :
+                                typ = pos_sample['info'].get(arg_name, None)
+                                if typ is None :
+                                    continue
 
-                def find_node(node) :
-                    for child in ast.walk(node) :
-                        if isinstance(child, ast.Call) :
-                            call_name = ast.unparse(child.func) 
-                            # if call_name in neg_info['args'] and 'function' in neg_info['args'][call_name] :
-                            if call_name in neg_info['args'] :
-                                # function은 여러 함수 타입을 가질 수 있기 때문에
-                                # 함부로 argument를 Type Casting을 하면 안됨
-                                return None
+                                pos_typs.add(typ)
 
-                        if isinstance(child, (ast.Subscript, ast.Attribute, ast.Name)) and ast.unparse(child) == arg_name :
-                            return child
+                    # Neg Guard
 
-                # Neg None Guard
-                #if len(neg_info['args'][arg_name]) == 1 and error_is_if_stmt :
-                def neg_guard() :
-                    if len(neg_info['args'][arg_name]) >= 1 and error_is_if_stmt :
-                        arg_node = None
-                        arg_node = find_node(error_stmt)
+                    error_is_if_stmt = False
+                    if isinstance(error_stmt, ast.If) :
+                        error_is_if_stmt = True
 
-                        if arg_node is not None :
-                            neg_typ = tuple(set(abstract_type_list(neg_info['args'][arg_name])))
-                            #if neg_typ == 'None' :
-                            if len(neg_typ) == 1 :
-                                neg_typ = neg_typ[0]
+                    def find_node(node) :
+                        for child in ast.walk(node) :
+                            if isinstance(child, ast.Call) :
+                                call_name = ast.unparse(child.func) 
+                                # if call_name in neg_info['args'] and 'function' in neg_info['args'][call_name] :
+                                if call_name in neg_info['args'] :
+                                    # function은 여러 함수 타입을 가질 수 있기 때문에
+                                    # 함부로 argument를 Type Casting을 하면 안됨
+                                    return None
 
-                            add_guard = AddGuard(neg_file_node)
-                            complete_list = add_guard.get_guard_list({arg_node : {neg_typ : 1}}, error_stmt, True)
+                            if isinstance(child, (ast.Subscript, ast.Attribute, ast.Name)) and ast.unparse(child) == arg_name :
+                                return child
 
-                            for node in complete_list :
-                                #continue
-                                find_template = FindTemplate()
-                                targets = find_template.get_target(node)
+                    # Neg None Guard
+                    #if len(neg_info['args'][arg_name]) == 1 and error_is_if_stmt :
+                    def neg_guard() :
+                        if arg_name in neg_info['args'] and len(neg_info['args'][arg_name]) >= 1 and error_is_if_stmt :
+                            arg_node = None
+                            arg_node = find_node(error_stmt)
 
-                                target = targets[0]
+                            if arg_node is not None :
+                                neg_typ = tuple(set(abstract_type_list(neg_info['args'][arg_name])))
+                                #if neg_typ == 'None' :
+                                if len(neg_typ) == 1 :
+                                    neg_typ = neg_typ[0]
 
-                                save_patch(node, target)
-                                # self.validate.validate(node, neg_filename, targets, test, self.total_test_num)
+                                add_guard = AddGuard(neg_file_node)
+                                complete_list = add_guard.get_guard_list({arg_node : {neg_typ : 1}}, error_stmt, True)
 
-                neg_guard()
+                                for node in complete_list :
+                                    #continue
+                                    find_template = FindTemplate()
+                                    targets = find_template.get_target(node)
 
-                # Make Other Patch
+                                    target = targets[0]
 
-                # find_func = FindTargetFunc(error_stmt)
-                # target_func = find_func.get_func(neg_file_node)
+                                    save_patch(node, target, filename=filename)
+                                    # self.validate.validate(node, neg_filename, targets, test, self.total_test_num)
 
-                # typecheck_candidates = extract_info.extract_isinstance_stmt_info(target_func)
-                # context_aware = ContextAware(typecheck_candidates, [neg_file_node])
-                stmt_hole_list = []
+                    neg_guard()
 
-                for arg, typ in neg_args.items() :
-                    if arg == 'self' :
-                        continue 
+                    # Make Other Patch
 
-                    candidate_templates = list()
-                    import itertools
-                    candidate_templates.extend(list(itertools.product(typ, copy(BASIC))))
+                    # find_func = FindTargetFunc(error_stmt)
+                    # target_func = find_func.get_func(neg_file_node)
 
-                    for template in candidate_templates :
-                        make_template = MakeTemplate(neg_file_node, arg, typ, dict(), [template], neg_args, pos_func_infos)
-                        ast_list = make_template.get_ast_list(neg_funcname, error_stmt)
+                    # typecheck_candidates = extract_info.extract_isinstance_stmt_info(target_func)
+                    # context_aware = ContextAware(typecheck_candidates, [neg_file_node])
+                    stmt_hole_list = []
 
-                        if ast_list is None :
-                            continue
-
-                        stmt_hole_list.extend([(node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) for node in ast_list])
-
-                # check_loop = IsInLoop()
-                # is_in_loop = check_loop.isin_loop(int(localize_line), neg_file_node)
-
-                selector = Selector(neg_args, pos_samples, error_is_if_stmt, is_in_loop=False)
-                templates = selector.scoring_template()
-
-                for (arg, arg_typ_info, templates) in templates :
-                    for template in templates :
-                        if len(template) >= 3 :
-                            continue
-                            # only multiple patch
-
-                        make_template = MakeTemplate(neg_file_node, arg, neg_args[arg], arg_typ_info, template, neg_args, pos_func_infos)
-                        ast_list = make_template.get_ast_list(funcname, error_stmt)
-                        if ast_list is None :
-                            continue
-
-                        if len(template) == 2 and template[1] in TemplateMethod.Multiple.value :
-                            stmt_hole_list.extend([(node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) for node in ast_list])
-
-                        for node in ast_list :
-                            synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
-
-                for (node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) in stmt_hole_list :
-                    for neg_info in neg_infos :
-                        (filename, funcname) = get_neg_filename_funcname(neg_info)
-
-                        if not (filename == neg_filename and funcname == neg_funcname) :
-                            continue
-
-                        if 'test' in neg_filename and 'test' in neg_funcname :
+                    for arg, typ in neg_args.items() :
+                        if arg == 'self' :
                             continue 
 
-                        synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
+                        candidate_templates = list()
+                        import itertools
+                        candidate_templates.extend(list(itertools.product(typ, copy(BASIC))))
 
+                        for template in candidate_templates :
+                            make_template = MakeTemplate(neg_file_node, arg, typ, dict(), [template], neg_args, pos_func_infos)
+                            ast_list = make_template.get_ast_list(neg_funcname, error_stmt)
+
+                            if ast_list is None :
+                                continue
+
+                            stmt_hole_list.extend([(node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) for node in ast_list])
+
+                    # check_loop = IsInLoop()
+                    # is_in_loop = check_loop.isin_loop(int(localize_line), neg_file_node)
+
+                    selector = Selector(neg_args, pos_samples, error_is_if_stmt, is_in_loop=False)
+                    templates = selector.scoring_template()
+
+                    for (arg, arg_typ_info, templates) in templates :
+                        for template in templates :
+                            if len(template) >= 3 :
+                                continue
+                                # only multiple patch
+
+                            make_template = MakeTemplate(neg_file_node, arg, neg_args[arg], arg_typ_info, template, neg_args, pos_func_infos)
+                            ast_list = make_template.get_ast_list(funcname, error_stmt)
+                            if ast_list is None :
+                                continue
+
+                            if len(template) == 2 and template[1] in TemplateMethod.Multiple.value :
+                                stmt_hole_list.extend([(node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) for node in ast_list])
+
+                            for node in ast_list :
+                                synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
+
+                    for (node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) in stmt_hole_list :
+                        for neg_info in neg_infos :
+                            (filename, funcname) = get_neg_filename_funcname(neg_info)
+
+                            if not (filename == neg_filename and funcname == neg_funcname) :
+                                continue
+
+                            if 'test' in neg_filename and 'test' in neg_funcname :
+                                continue 
+
+                            synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
+
+    save_patch_info()
 
 def main() :
     parser = argparse.ArgumentParser()

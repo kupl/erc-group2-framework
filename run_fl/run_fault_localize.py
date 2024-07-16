@@ -71,7 +71,7 @@ def run():
     with open(directory / FAULT_LOCALIZER_OUTPUT, 'w') as f:
         json.dump(ranking_localize, f, indent=4)
 
-    raise Exception("Not Implemented")
+    # raise Exception("Not Implemented")
 
 def main() :
     parser = argparse.ArgumentParser()

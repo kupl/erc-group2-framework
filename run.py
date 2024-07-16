@@ -4,16 +4,20 @@ from pathlib import Path
 from run_test.run_test import run as run_test
 from run_fl.run_fault_localize import run as run_fault_localize
 from run_patch_generator.run_patch_generator import run as run_patch_generator
-from run_validator import run as run_validator
+from run_validator.run_validator import run as run_validator
 
 def run(src_dir, test_dir, test_file, test_method): 
-    run_test(test_dir, test_file, test_method)
-    run_fault_localize()
+    # run_test(test_dir, test_file, test_method)
+    # run_fault_localize()
 
+    # src_dir = os.getcwd() + "/example/real/src"
+
+    # try:
+    #     run_patch_generator(src_dir)
+    # except AssertionError:
+    #     pass
     src_dir = os.getcwd() + "/example/real/src"
-
-    run_patch_generator(src_dir)
-    # run_validator(src_dir, test_dir)
+    run_validator(src_dir, test_dir)
 
 def main() :
 
