@@ -72,6 +72,7 @@ def run(src_dir):
     '''
     This is the function which runs patch generator.
     '''
+    logger.info("Run Patch Generator...")
 
     directory = Path(os.getcwd() + "/test_info/pytest-real")
 
@@ -262,6 +263,7 @@ def run(src_dir):
                             synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
 
     save_patch_info()
+    logger.info("Run Patch Generator... Done!")
 
 def main() :
     parser = argparse.ArgumentParser()

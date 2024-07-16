@@ -22,6 +22,7 @@ def run(src_dir, test_dir) :
     '''
     This is the function which run validator.
     '''
+    logger.info("Run Validator...")
     directory = Path(os.getcwd() + "/test_info/pytest-real")
     project = "real"
     with open(str(directory) + ".json") as f :
@@ -41,7 +42,7 @@ def run(src_dir, test_dir) :
     with open(directory / PATCH_GENERATE_FOLDER_NAME / "patch_info.txt") as f :
         patch_count = int(f.read())
 
-    with Progress(f"output message",BarColumn(),TaskProgressColumn(), SpinnerColumn(), TimeElapsedColumn(), TextColumn("{task.completed}/{task.total}") ) as progress:
+    with Progress(f"Validator",BarColumn(),TaskProgressColumn(), SpinnerColumn(), TimeElapsedColumn(), TextColumn("{task.completed}/{task.total}") ) as progress:
         task = progress.add_task("",total = patch_count)
         i = 0
         while not progress.finished:
@@ -77,12 +78,13 @@ def run(src_dir, test_dir) :
             try:
                 validator.validate(patch, patch_info['filename'], target, test)
             except PassAllTests as e:
-                logger.info(f"{i}th patch is validated")
+                logger.info(f"{i}th patch validated")
 
     # folder where you will save the output of validator
     # write_directory = src_dir.parent / VALIDATOR_FOLDER_NAME
     
-    raise Exception("Not Implemented")
+    # raise Exception("Not Implemented")
+    logger.info("Run Validator... Done!")
 
 def main() :
     

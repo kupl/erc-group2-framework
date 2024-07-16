@@ -50,8 +50,9 @@ def preprocessing(project_name) :
     logger.info("Run Negative Test Cases...")
     with redirect_stdout(f):
         with collect_types.collect():
-            #print(test_option)
+            # print(test_option)
             pytest.main(test_option)
+    collect_types.stop_types_collection()
     logger.info("Run Negative Test Cases... Done!")
 
     # with Live(MY_PANEL.get_panel("Running Negative Test Cases..."), refresh_per_second=20) as live:
