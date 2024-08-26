@@ -8,15 +8,32 @@ from const import (
     PATCH_GENERATE_FOLDER_NAME,
     VALIDATOR_FOLDER_NAME,
 )
-
+import shutil
+from pretty_good_diff import show_diff
 from .return_type_inference import ReturnInference
 from .execute import Execute
 from .validator import Validator, PassAllTests
 
 from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn , BarColumn, TaskProgressColumn, TextColumn
+from rich.console import Console
+from rich.syntax import Syntax
 
 import logger
 logger = logger.set_logger(os.path.basename(__file__))
+
+import difflib
+
+def git_diff_style(a, b):
+    diff = difflib.unified_diff(
+        a.splitlines(), b.splitlines(), 
+        fromfile='Original', tofile='Patched',
+        lineterm=''
+    )
+    diff_text = '\n'.join(diff)
+    
+    syntax = Syntax(diff_text, "diff", theme="ansi_dark")
+    console = Console()
+    console.print(syntax)
 
 def run(src_dir, test_dir) :
     '''
@@ -24,6 +41,14 @@ def run(src_dir, test_dir) :
     '''
     logger.info("Run Validator...")
     directory = Path(os.getcwd() + "/test_info/pytest-real")
+
+    # folder where you will save the output of validator
+    write_directory = directory / VALIDATOR_FOLDER_NAME
+
+    # check if the folder exists, if not create it
+    if not os.path.exists(write_directory):
+        os.makedirs(write_directory)
+
     project = "real"
     with open(str(directory) + ".json") as f :
         pytest_info = json.load(f)[project]
@@ -41,6 +66,9 @@ def run(src_dir, test_dir) :
 
     with open(directory / PATCH_GENERATE_FOLDER_NAME / "patch_info.txt") as f :
         patch_count = int(f.read())
+
+    is_first = True
+    first_patch = None
 
     with Progress(f"Validator",BarColumn(),TaskProgressColumn(), SpinnerColumn(), TimeElapsedColumn(), TextColumn("{task.completed}/{task.total}") ) as progress:
         task = progress.add_task("",total = patch_count)
@@ -79,13 +107,28 @@ def run(src_dir, test_dir) :
                 validator.validate(patch, patch_info['filename'], target, test)
             except PassAllTests as e:
                 logger.info(f"{i}th patch validated")
+                # copy the patch.py and patch-info.json to the folder
+                shutil.copy(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py', write_directory / f'{i}.py')
+                shutil.copy(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json', write_directory / f'{i}-info.json')
 
-    # folder where you will save the output of validator
-    # write_directory = src_dir.parent / VALIDATOR_FOLDER_NAME
+                if is_first:
+                    first_patch = i
+                    is_first = False
     
     # raise Exception("Not Implemented")
     logger.info("Run Validator... Done!")
 
+    # show diff of first patch
+    with open(write_directory / f'{first_patch}.py') as f :
+        patch = f.read()
+
+    with open(directory / PATCH_GENERATE_FOLDER_NAME / f'{first_patch}-info.json') as f :
+        patch_info = json.load(f)
+
+    with open(patch_info["filename"]) as f :
+        target = ast.unparse(ast.parse(f.read()))
+
+    git_diff_style(target, patch)
 def main() :
     
     parser = argparse.ArgumentParser()
