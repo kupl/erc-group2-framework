@@ -82,16 +82,18 @@ python run.py --source-directory [source_directory] --config [config_directory]
 - `-c`, `--config` : 설정 파일의 경로
 
 소스 디렉토리는 프로젝트의 메인 소스코드가 포함된 디렉토리를 가리킨다. 설정 파일은 [Config 파일 구조](#config-파일-구조)에 따라 작성되어야 한다.
+메인 프레임워크 실행 시, 오류 위치 추정기, 패치 생성기, 패치 검증기가 차례로 실행된다.
+해당 결과물은 `test_info/<project name>` 디렉토리에 저장된다.
 
 ### 모듈 별 실행
-
-
 
 본 프레임워크의 각 모듈은 다음과 같은 명령어를 통해 개별적으로 실행할 수 있다. 모듈 별 실행 전 테스트를 실행하여 결과물을 생성해야 한다. 테스트 실행은 다음과 같은 명령어를 통해 실행된다:
 
 ```bash
 python run_test.py --config [config_directory]
 ```
+
+결과물은 ``<config 경로의 상위 폴더>` 디렉토리에 저장된다.
 
 - 오류 위치 추정기 실행:
 
@@ -101,6 +103,8 @@ python run_test.py --config [config_directory]
 python run_fault_localize.py --config [config_directory]
 ```
 
+결과물은 `<config 경로의 상위 폴더>/fl_output` 디렉토리에 저장된다.
+
 - 패치 생성기 실행:
 
 오류 위치 추정기 결과물을 이용하여 패치 생성기를 실행하는 명령어는 다음과 같다:
@@ -109,6 +113,8 @@ python run_fault_localize.py --config [config_directory]
 python run_patch_generator.py --source-directory [source_directory] --config [config_directory]
 ```
 
+결과물은 `<config 경로의 상위 폴더>/generated_patches` 디렉토리에 저장된다.
+
 - 패치 검증기 실행:
 
 패치 생성기 결과물을 이용하여 패치 검증기를 실행하는 명령어는 다음과 같다:
@@ -116,6 +122,8 @@ python run_patch_generator.py --source-directory [source_directory] --config [co
 ```bash
 python run_patch_validator.py --source-directory [source_directory] --config [config_directory]
 ```
+
+결과물은 `<config 경로의 상위 폴더>/validated_patches` 디렉토리에 저장된다.
 
 ## Config 파일 구조
 
