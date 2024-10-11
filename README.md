@@ -1,4 +1,4 @@
-## 2그룹 자동수정 프레임워크
+# 2그룹 자동수정 프레임워크
 
 본 프로젝트는 2그룹 자동수정 프레임워크를 구현하는 것을 목표로 한다. 2그룹 자동수정 프레임워크는 오류가 있는 파이썬 프로젝트를 입력으로 받아 수정해 모든 테스트가 양성 테스트가 되도록 수정된 소스코드 집합(패치)의 후보를 출력한다. 
 
@@ -14,11 +14,11 @@
 
 본 프레임워크 설치 및 실행은 Ubuntu 22.04 환경에서 테스트 되었으며, Python>=3.9 이상을 요구한다.
 
-### 설치 가이드
+## 설치 가이드
 
 본 프레임워크를 실행하기 위해 Docker를 사용하는 것을 권장한다. Local 환경에서 설치하는 방법은 [Local 설치 가이드](#local-설치-가이드)로 넘어가면 된다.
 
-#### Docker 설치 가이드 
+### Docker 설치 가이드 
 
 먼저, 해당 프로젝트를 클론한다:
 
@@ -39,7 +39,7 @@ docker build -t erc-framework dockerfile
 docker run -it erc-framework
 ```
 
-#### Local 설치 가이드
+### Local 설치 가이드
 
 먼저, 해당 프로젝트를 클론하고 필요한 패키지들을 설치한다:
 
@@ -55,9 +55,9 @@ pip install -r requirements.txt
 pip install --use-pep517 -e pyannotate
 ```
 
-### 실행 가이드
+## 실행 가이드
 
-#### 예제 실행
+### 예제 실행
 
 본 프레임워크를 테스트하기 위해 `example/sample` 디렉토리에 있는 예제 프로젝트를 사용할 수 있다. 다음과 같은 명령어를 통해 해당 예제를 실행할 수 있다:
 
@@ -67,7 +67,7 @@ python run.py --source-directory example/sample/src --config test_info/config.js
 
 위의 명령어를 통해 메인 프레임워크가 실행되며, 세 가지 모듈 (오류 위치 추정기, 패치 생성기, 패치 검증기)가 실행된다. 모든 모듈이 성공적으로 실행되면, `test_info/sample` 디렉토리에 결과물이 저장된다. 패치 검증까지 성공한 파일들은 `test_info/sample/validated_patches`에 저장된다.
 
-#### 메인 프레임워크 실행
+### 메인 프레임워크 실행
 
 본 프레임워크는 다음과 같은 명령어를 통해 실행된다:
 
@@ -83,7 +83,7 @@ python run.py --source-directory [source_directory] --config [config_directory]
 
 소스 디렉토리는 프로젝트의 메인 소스코드가 포함된 디렉토리를 가리킨다. 설정 파일은 [Config 파일 구조](#config-파일-구조)에 따라 작성되어야 한다.
 
-#### 모듈 별 실행
+### 모듈 별 실행
 
 
 
@@ -117,7 +117,7 @@ python run_patch_generator.py --source-directory [source_directory] --config [co
 python run_patch_validator.py --source-directory [source_directory] --config [config_directory]
 ```
 
-### Config 파일 구조
+## Config 파일 구조
 
 본 프레임워크는 다음과 같은 구조의 설정 파일을 사용한다:
 
