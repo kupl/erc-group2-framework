@@ -1,7 +1,0 @@
-{
-    "src/package1/source1.py:3" : 0.5,
-    "src/package1/source1.py:6" : 1,
-    "src/package1/source1.py:9" : 0,
-    "src/package2/source2.py:3" : 0,
-    "src/package2/source2.py:6" : 0
-}

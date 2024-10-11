@@ -22,6 +22,7 @@ import logger
 logger = logger.set_logger(os.path.basename(__file__))
 
 import difflib
+from util import get_info_directory
 
 def git_diff_style(a, b):
     diff = difflib.unified_diff(
@@ -35,27 +36,27 @@ def git_diff_style(a, b):
     console = Console()
     console.print(syntax)
 
-def run(src_dir, test_dir) :
+def run(src_dir, config) :
     '''
     This is the function which run validator.
     '''
     logger.info("Run Validator...")
-    directory = Path(os.getcwd() + "/test_info/pytest-real")
+    with open(config) as readfile :
+        pytest_info = json.load(readfile)
+
+    project_name = pytest_info['name']
+    info_directory = get_info_directory(config)
 
     # folder where you will save the output of validator
-    write_directory = directory / VALIDATOR_FOLDER_NAME
+    write_directory = info_directory / VALIDATOR_FOLDER_NAME
 
     # check if the folder exists, if not create it
     if not os.path.exists(write_directory):
         os.makedirs(write_directory)
 
-    project = "real"
-    with open(str(directory) + ".json") as f :
-        pytest_info = json.load(f)[project]
-
-    with open(directory / "neg.json") as f :
+    with open(info_directory / "neg.json") as f :
         neg_infos = json.load(f)
-    with open(directory / "func.json") as f :
+    with open(info_directory / "func.json") as f :
         pos_func_infos = json.load(f)
 
     test = set()
@@ -64,7 +65,7 @@ def run(src_dir, test_dir) :
         for idx in neg_info["idx"]:
             test.add(idx)
 
-    with open(directory / PATCH_GENERATE_FOLDER_NAME / "patch_info.txt") as f :
+    with open(info_directory / PATCH_GENERATE_FOLDER_NAME / "patch_info.txt") as f :
         patch_count = int(f.read())
 
     is_first = True
@@ -76,11 +77,11 @@ def run(src_dir, test_dir) :
         while not progress.finished:
             i += 1
             progress.update(task, advance=1)
-            with open(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json') as f :
+            with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json') as f :
                 patch_info = json.load(f)
-            with open(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-target.py') as f :
+            with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-target.py') as f :
                 target = ast.parse(f.read())
-            with open(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py') as f :
+            with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py') as f :
                 patch = ast.parse(f.read())
             
             # patch_generator_folder = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
@@ -100,7 +101,7 @@ def run(src_dir, test_dir) :
                         continue
 
 
-            exec_prog = Execute(src_dir, project, pytest_info)
+            exec_prog = Execute(src_dir, project_name, pytest_info)
             validator = Validator(exec_prog)
 
             try:
@@ -108,8 +109,8 @@ def run(src_dir, test_dir) :
             except PassAllTests as e:
                 logger.info(f"{i}th patch validated")
                 # copy the patch.py and patch-info.json to the folder
-                shutil.copy(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py', write_directory / f'{i}.py')
-                shutil.copy(directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json', write_directory / f'{i}-info.json')
+                shutil.copy(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py', write_directory / f'{i}.py')
+                shutil.copy(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json', write_directory / f'{i}-info.json')
 
                 if is_first:
                     first_patch = i
@@ -122,7 +123,7 @@ def run(src_dir, test_dir) :
     with open(write_directory / f'{first_patch}.py') as f :
         patch = f.read()
 
-    with open(directory / PATCH_GENERATE_FOLDER_NAME / f'{first_patch}-info.json') as f :
+    with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{first_patch}-info.json') as f :
         patch_info = json.load(f)
 
     with open(patch_info["filename"]) as f :

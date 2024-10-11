@@ -15,7 +15,7 @@ from const import (
     VALIDATOR_FOLDER_NAME,
 )
 
-from util import abstract_type_list
+from util import abstract_type_list, get_info_directory
 from .add_guard import AddGuard
 from .template import FindTemplate, TemplateMethod, BASIC, MakeTemplate
 from .select_template import Selector
@@ -39,12 +39,16 @@ class MyAST() :
     def __init__(self, usage_file) :
         self.usage_file = usage_file
 
+    def is_skip(self, filename):
+        return filename not in self.usage_file
+
     def files_to_asts(self, dir) :
         asts = {}
         files_src = {}
 
-        for filename in glob.iglob(dir + "/**/*.py", recursive=True) :
-            if not filename in self.usage_file : # 안쓰인 파일은 스킵
+        for filename in dir.rglob("*.py"):
+            filename = str(filename.resolve())
+            if self.is_skip(filename) : # 안쓰인 파일은 스킵
                 continue
 
             if "tests" in filename : # test 포함한건 제외
@@ -68,28 +72,28 @@ class MyAST() :
 def get_neg_filename_funcname(neg_info) :
     return (neg_info['info']['filename'], neg_info['info']['funcname'])
 
-def run(src_dir):
+def run(src_dir, config):
     '''
     This is the function which runs patch generator.
     '''
     logger.info("Run Patch Generator...")
 
-    directory = Path(os.getcwd() + "/test_info/pytest-real")
+    info_directory = get_info_directory(config)
 
-    with open(directory / "neg.json") as f :
+    with open(info_directory / "neg.json") as f :
         neg_infos = json.load(f)
-    with open(directory / "pos.json") as f :
+    with open(info_directory / "pos.json") as f :
         pos_info = json.load(f)
-    with open(directory / "neg_localize.json") as f :
+    with open(info_directory / "neg_localize.json") as f :
         neg_localize = json.load(f)
-    with open(directory / "neg_func.json") as f:
+    with open(info_directory / "neg_func.json") as f:
         neg_func_infos = json.load(f)
-    with open(directory / "func.json") as f :
+    with open(info_directory / "func.json") as f :
         pos_func_infos = json.load(f)
-    with open(directory / "neg_additional.json") as f :
+    with open(info_directory / "neg_additional.json") as f :
         neg_additional = json.load(f)
 
-    with open(directory / FAULT_LOCALIZER_OUTPUT, 'r') as f :
+    with open(info_directory / FAULT_LOCALIZER_OUTPUT, 'r') as f :
         ranking_localize = json.load(f)
 
     usage_file = set()
@@ -120,7 +124,7 @@ def run(src_dir):
                         try:
                             neg_file_node = deepcopy(files[neg_filename])
                         except Exception as e :
-                            logger.DEBUG(neg_filename, "not exists")
+                            logger.debug(neg_filename + " not exists")
                             continue
                         error_stmt = extract_info.find_error_stmt(neg_file_node, int(localize_line))
 
@@ -196,7 +200,7 @@ def run(src_dir):
 
                                     target = targets[0]
 
-                                    save_patch(node, target, filename=filename)
+                                    save_patch(node, target, filename, config)
                                     # self.validate.validate(node, neg_filename, targets, test, self.total_test_num)
 
                     neg_guard()
@@ -248,7 +252,7 @@ def run(src_dir):
                                 stmt_hole_list.extend([(node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) for node in ast_list])
 
                             for node in ast_list :
-                                synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
+                                synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional, config)
 
                     for (node, neg_filename, neg_funcname, neg_classname, neg_args, neg_file_node, error_stmt) in stmt_hole_list :
                         for neg_info in neg_infos :
@@ -260,9 +264,9 @@ def run(src_dir):
                             if 'test' in neg_filename and 'test' in neg_funcname :
                                 continue 
 
-                            synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional)
+                            synthe.synthesize(node, neg_filename, neg_funcname, neg_classname, neg_args, pos_func_infos, neg_additional, config)
 
-    save_patch_info()
+    save_patch_info(config)
     logger.info("Run Patch Generator... Done!")
 
 def main() :

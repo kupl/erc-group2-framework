@@ -19,6 +19,7 @@ from config import MY_PANEL
 from rich.console import Console
 from rich.syntax import Syntax
 from time import sleep
+from util import get_info_directory
 
 # def running() :
 #     with open('../pyter/pytest.json', 'r') as readfile :
@@ -34,17 +35,17 @@ def print_pretty_traceback(traceback_str):
     console.print(syntax)
 
 
-def preprocessing(project_name) :
+def preprocessing(config) :
     # project = os.getcwd()[os.getcwd().rfind('/')+1:]
     # project_name = project[:project.find('-')]
 
     # project_name = 'real'
-    directory = Path(CUR_DIR + "/test_info/pytest-" + project_name)
+    # directory = Path(CUR_DIR + "/test_info/pytest-" + project_name)
 
-    with open(str(directory) + ".json") as readfile :
+    with open(config) as readfile :
         pytest_option = json.load(readfile)
 
-    test_option = pytest_option[project_name]['neg']
+    test_option = pytest_option['neg']
 
     test_methods = list()
     for test_method in test_option :
@@ -101,22 +102,24 @@ def preprocessing(project_name) :
 
     err, msg, result, localize, additional = collect_types.my_stats()
     
-    if not os.path.isdir(directory) :
-        os.mkdir(directory)
+    info_directory = get_info_directory(config)
 
-    with open(directory / "neg.json", 'w') as outfile:
+    if not os.path.isdir(info_directory) :
+        os.mkdir(info_directory)
+
+    with open(info_directory / "neg.json", 'w') as outfile:
         json.dump(err, outfile, indent=4)
 
-    with open(directory / "neg_msg.json", 'w') as outfile:
+    with open(info_directory / "neg_msg.json", 'w') as outfile:
         json.dump(msg, outfile, indent=4)
 
-    with open(directory / "neg_func.json", 'w') as outfile:
+    with open(info_directory / "neg_func.json", 'w') as outfile:
         json.dump(result, outfile, indent=4)
 
-    with open(directory / "neg_localize.json", 'w') as outfile:
+    with open(info_directory / "neg_localize.json", 'w') as outfile:
         json.dump(localize, outfile, indent=4)
 
-    with open(directory / "neg_additional.json", 'w') as outfile:
+    with open(info_directory / "neg_additional.json", 'w') as outfile:
         json.dump(additional, outfile, indent=4)
 
 # if __name__ == "__main__" :

@@ -471,7 +471,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
     # def validation(self, node, target) :
     #     self.validator.validate(node, self.filename, target, self.test, self.total_test_num)
 
-    def template_synthesize(self, node) :
+    def template_synthesize(self, node, config):
         find_template = FindTemplate()
         targets = find_template.get_target(node)
 
@@ -557,7 +557,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
             #target = target[0] # 패치결과가 없는거는 single? 전혀아님
 
             target = targets[0]
-            save_patch(node, target, filename=self.filename)
+            save_patch(node, target, filename=self.filename, config=config)
             return
 
         import itertools
@@ -591,7 +591,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
 
             #print("do validate")
             target = targets[0]
-            save_patch(final_node, target, filename=self.filename, patch_info=patch_info)
+            save_patch(final_node, target, filename=self.filename, config=config, patch_info=patch_info)
 
             # 돌려놓기
             for i, template in enumerate(templates) :

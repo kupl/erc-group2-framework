@@ -19,21 +19,25 @@ from config import MY_PANEL
 import logger
 logger = logger.set_logger(os.path.basename(__file__))
 
-def run():
+def run(config):
     '''
     This is the function which run fault localization.
     '''
     logger.info("Run Fault Localization...")
 
-    directory = Path(os.getcwd() + "/test_info/pytest-real")
+    with open(config) as readfile :
+        pytest_option = json.load(readfile)
+    project_name = pytest_option['name']
 
-    with open(directory / "neg.json") as f :
+    info_directory = config.parent / project_name
+
+    with open(info_directory / "neg.json") as f :
         neg_infos = json.load(f)
-    with open(directory / "pos.json") as f :
+    with open(info_directory / "pos.json") as f :
         pos_info = json.load(f)
-    with open(directory / "neg_localize.json") as f :
+    with open(info_directory / "neg_localize.json") as f :
         neg_localize = json.load(f)
-    with open(directory / "pos_localize.json") as f :
+    with open(info_directory / "pos_localize.json") as f :
         pos_localize = json.load(f)
 
     type_diff = TypeDifference(neg_infos, pos_info)
@@ -65,10 +69,10 @@ def run():
     console.print(table)
     
     # path where you will save the output of fault localizer
-    if not os.path.isdir(directory / FAULT_LOCALIZER_FOLDER):
-        os.mkdir(directory / FAULT_LOCALIZER_FOLDER)
+    if not os.path.isdir(info_directory / FAULT_LOCALIZER_FOLDER):
+        os.mkdir(info_directory / FAULT_LOCALIZER_FOLDER)
 
-    with open(directory / FAULT_LOCALIZER_OUTPUT, 'w') as f:
+    with open(info_directory / FAULT_LOCALIZER_OUTPUT, 'w') as f:
         json.dump(ranking_localize, f, indent=4)
 
     # raise Exception("Not Implemented")

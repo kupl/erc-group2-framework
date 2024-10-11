@@ -175,7 +175,7 @@ class Synthesize() :
             if hasattr(node, "mark") and node.mark :
                 return node
 
-    def synthesize(self, node, filename, funcname, classname, neg_args, pos_func_infos, neg_additional, final=False, func_patch=False) :
+    def synthesize(self, node, filename, funcname, classname, neg_args, pos_func_infos, neg_additional, config, final=False, func_patch=False) :
         '''
         타입 체킹을 할 var를 고르고
         synthesize를 하자
@@ -188,7 +188,7 @@ class Synthesize() :
         template부터 합성해보자
         '''
         temp_synthesize = TemplateSynthesizer(filename, funcname, classname, neg_args, pos_func_infos, neg_additional, final=final, func_patch=func_patch)
-        temp_synthesize.template_synthesize(node)
+        temp_synthesize.template_synthesize(node, config)
 
         return
 

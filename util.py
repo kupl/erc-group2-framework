@@ -1,4 +1,13 @@
 import ast
+import json
+
+def get_info_directory(config):
+    with open(config) as readfile :
+        pytest_option = json.load(readfile)
+    project_name = pytest_option['name']
+
+    info_directory = config.parent / project_name
+    return info_directory
 
 class FindTargetFunc(ast.NodeVisitor) :
     def __init__(self, target) :

@@ -17,21 +17,21 @@ logger = logger.set_logger(os.path.basename(__file__))
 
 from rich.live import Live
 from config import MY_PANEL
+from util import get_info_directory
 
 
 CUR_DIR = os.getcwd()
 
-def preprocessing(project_name) :
-    directory = Path(CUR_DIR + "/test_info/pytest-" + project_name)
-
-    
-    with open(str(directory) + ".json") as readfile :
+def preprocessing(config) :
+    with open(config) as readfile :
         pytest_option = json.load(readfile)
 
-    with open(directory / 'neg.json', 'r') as readfile :
+    info_directory = get_info_directory(config)
+
+    with open(info_directory / 'neg.json', 'r') as readfile :
         neg = json.load(readfile)
 
-    test_option = pytest_option[project_name]['pos']
+    test_option = pytest_option['pos']
 
     collect_types.init_types_collection(negative_info=neg)
     f = io.StringIO()
@@ -50,13 +50,13 @@ def preprocessing(project_name) :
 
     args, result, localize = collect_types.pos_stats()
     
-    with open(directory / "func.json", 'w') as outfile :
+    with open(info_directory / "func.json", 'w') as outfile :
         json.dump(result, outfile, indent=4)
 
-    with open(directory / "pos.json", 'w') as outfile:
+    with open(info_directory / "pos.json", 'w') as outfile:
         json.dump(args, outfile, indent=4)
 
-    with open(directory / "pos_localize.json", 'w') as outfile:
+    with open(info_directory / "pos_localize.json", 'w') as outfile:
         json.dump(localize, outfile, indent=4)
 
 # if __name__ == "__main__" :

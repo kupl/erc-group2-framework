@@ -1,6 +1,6 @@
 
 from pathlib import Path
-
+from util import get_info_directory
 import ast
 import os
 from const import (
@@ -13,7 +13,7 @@ import json
 
 PATCH_COUNT = 0
 
-def save_patch(patch, target, filename, patch_info={}):
+def save_patch(patch, target, filename, config, patch_info={}):
     global PATCH_COUNT
 
     skip = False
@@ -25,7 +25,7 @@ def save_patch(patch, target, filename, patch_info={}):
     if skip :
         return
 
-    directory = Path(os.getcwd() + "/test_info/pytest-real")
+    directory = get_info_directory(config)
     if not os.path.exists(directory / PATCH_GENERATE_FOLDER_NAME):
         os.makedirs(directory / PATCH_GENERATE_FOLDER_NAME)
 
@@ -45,8 +45,8 @@ def save_patch(patch, target, filename, patch_info={}):
     # if PATCH_COUNT >= 100:
     #     raise AssertionError("Patch Count is over 10")
 
-def save_patch_info():
-    directory = Path(os.getcwd() + "/test_info/pytest-real")
+def save_patch_info(config):
+    directory = get_info_directory(config)
     if not os.path.exists(directory / PATCH_GENERATE_FOLDER_NAME):
         os.makedirs(directory / PATCH_GENERATE_FOLDER_NAME)
 
