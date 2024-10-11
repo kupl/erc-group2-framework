@@ -62,7 +62,9 @@ pip install --use-pep517 -e pyannotate
 본 프레임워크를 테스트하기 위해 `example/sample` 디렉토리에 있는 예제 프로젝트를 사용할 수 있다. 다음과 같은 명령어를 통해 해당 예제를 실행할 수 있다:
 
 ```bash
-python run.py --source-directory example/sample/src --config test_info/config.json
+python run.py \
+    --source-directory example/sample/src \
+    --config test_info/sample.json
 ```
 
 위의 명령어를 통해 메인 프레임워크가 실행되며, 세 가지 모듈 (오류 위치 추정기, 패치 생성기, 패치 검증기)가 실행된다. 모든 모듈이 성공적으로 실행되면, `test_info/sample` 디렉토리에 결과물이 저장된다. 패치 검증까지 성공한 파일들은 `test_info/sample/validated_patches`에 저장된다.
@@ -72,7 +74,9 @@ python run.py --source-directory example/sample/src --config test_info/config.js
 본 프레임워크는 다음과 같은 명령어를 통해 실행된다:
 
 ```bash
-python run.py --source-directory [source_directory] --config [config_directory]
+python run.py \
+    --source-directory [source_directory] \
+    --config [config_directory]
 ```
 
 <!-- Make option table -->
@@ -100,7 +104,8 @@ python run_test.py --config [config_directory]
 테스트 실행 결과물을 이용하여 오류 위치 추정기를 실행하는 명령어는 다음과 같다:
 
 ```bash
-python run_fault_localize.py --config [config_directory]
+python run_fault_localize.py \
+    --config [config_directory]
 ```
 
 결과물은 `<config 경로의 상위 폴더>/fl_output` 디렉토리에 저장된다.
@@ -110,7 +115,9 @@ python run_fault_localize.py --config [config_directory]
 오류 위치 추정기 결과물을 이용하여 패치 생성기를 실행하는 명령어는 다음과 같다:
 
 ```bash
-python run_patch_generator.py --source-directory [source_directory] --config [config_directory]
+python run_patch_generator.py \
+    --source-directory [source_directory] \
+    --config [config_directory]
 ```
 
 결과물은 `<config 경로의 상위 폴더>/generated_patches` 디렉토리에 저장된다.
@@ -120,7 +127,9 @@ python run_patch_generator.py --source-directory [source_directory] --config [co
 패치 생성기 결과물을 이용하여 패치 검증기를 실행하는 명령어는 다음과 같다:
 
 ```bash
-python run_patch_validator.py --source-directory [source_directory] --config [config_directory]
+python run_patch_validator.py \
+    --source-directory [source_directory] \
+    --config [config_directory]
 ```
 
 결과물은 `<config 경로의 상위 폴더>/validated_patches` 디렉토리에 저장된다.

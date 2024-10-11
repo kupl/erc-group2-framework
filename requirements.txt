@@ -1,5 +1,4 @@
 pytest==7.4.0
-# numpy==1.25.0
 # openai==0.14.0
 # tqdm==4.62.3
 # transformers==4.30.2
@@ -8,3 +7,4 @@ pytest-timeouts==1.2.1
 rich==13.7.1
 iteration_utilities==0.12.1
 pretty_good_diff==0.1.0
+numpy
