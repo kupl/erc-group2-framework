@@ -4,6 +4,5 @@ __pycache__
 *.pyc
 *pyter*
 .coverage
-test_info
-
+test_info/*
 !test_info/sample.json
