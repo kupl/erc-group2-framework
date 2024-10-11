@@ -123,7 +123,7 @@ python run_patch_validator.py --source-directory [source_directory] --config [co
 
 ```json
 {
-    "name": <Project Name>,
+    "name": <Project Name>
     "pos" : [
         "--continue-on-collection-errors", 
         "--execution-timeout", "300", 
