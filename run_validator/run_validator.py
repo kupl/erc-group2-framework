@@ -71,6 +71,8 @@ def run(src_dir, config) :
     is_first = True
     first_patch = None
 
+    patch_list = []
+
     with Progress(f"Validator",BarColumn(),TaskProgressColumn(), SpinnerColumn(), TimeElapsedColumn(), TextColumn("{task.completed}/{task.total}") ) as progress:
         task = progress.add_task("",total = patch_count)
         i = 0
@@ -108,6 +110,7 @@ def run(src_dir, config) :
                 validator.validate(patch, patch_info['filename'], target, test)
             except PassAllTests as e:
                 logger.info(f"{i}th patch validated")
+                patch_list.append(i)
                 # copy the patch.py and patch-info.json to the folder
                 shutil.copy(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py', write_directory / f'{i}.py')
                 shutil.copy(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json', write_directory / f'{i}-info.json')
@@ -119,17 +122,49 @@ def run(src_dir, config) :
     # raise Exception("Not Implemented")
     logger.info("Run Validator... Done!")
 
+    # print top 5 patches
+    logger.info("Print Top 5 patches")
+    for i in range(5):
+        if i >= len(patch_list):
+            break
+
+        if i == 0:
+            logger.info(f"1st Patch ===> {patch_list[i]}.py")
+        elif i == 1:
+            logger.info(f"2nd Patch ===> {patch_list[i]}.py")
+        elif i == 2:
+            logger.info(f"3rd Patch ===> {patch_list[i]}.py")
+        else:
+            logger.info(f"{i+1}th Patch ===> {patch_list[i]}.py")
+
+        with open(write_directory / f'{patch_list[i]}.py') as f :
+            patch = f.read()
+
+        with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{patch_list[i]}-info.json') as f :
+            patch_info = json.load(f)
+
+        with open(patch_info["filename"]) as f :
+            target = ast.unparse(ast.parse(f.read()))
+
+        git_diff_style(target, patch)
+
+    # save the output of validator
+    patch_result = [{"patch_id": patch_id, "rank": i} for i, patch_id in enumerate(patch_list)]
+
+    with open(info_directory / VALIDATOR_FOLDER_NAME / "total_rank.json", 'w') as f:
+        json.dump(patch_result, f, indent=4)
+
     # show diff of first patch
-    with open(write_directory / f'{first_patch}.py') as f :
-        patch = f.read()
+    # with open(write_directory / f'{first_patch}.py') as f :
+    #     patch = f.read()
 
-    with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{first_patch}-info.json') as f :
-        patch_info = json.load(f)
+    # with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{first_patch}-info.json') as f :
+    #     patch_info = json.load(f)
 
-    with open(patch_info["filename"]) as f :
-        target = ast.unparse(ast.parse(f.read()))
+    # with open(patch_info["filename"]) as f :
+    #     target = ast.unparse(ast.parse(f.read()))
 
-    git_diff_style(target, patch)
+    # git_diff_style(target, patch)
 def main() :
     
     parser = argparse.ArgumentParser()

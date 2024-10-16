@@ -51,11 +51,13 @@ def run(config):
     table.add_column("Function", style="green")
     table.add_column("Line", style="yellow")
     table.add_column("Target Variable", style="red")
+    table.add_column("Rank by Function", style="blue")
+    table.add_column("SBFL Score", style="blue")
 
     # table_column_set = set()
 
-    for rank_by_type in ranking_localize : # type difference 가장 큰 순으로
-        for localize_list in rank_by_type.values() : # sbfl 점수 순서대로 나옴
+    for i, rank_by_type in enumerate(ranking_localize) : # type difference 가장 큰 순으로
+        for score, localize_list in rank_by_type.items() : # sbfl 점수 순서대로 나옴
             for localize in localize_list : # 같은 점수대가 있을 수도 있으니!
                 (filename, funcname, localize_line) = localize['localize']
                 target_var = localize['info']['name']
@@ -63,7 +65,7 @@ def run(config):
                 # if localize['localize'] in table_column_set :
                 #     continue
                 # table_column_set.add(localize['localize'])
-                table.add_row(filename, funcname, localize_line, target_var)
+                table.add_row(filename, funcname, localize_line, target_var, str(i+1), str(round(score, 3)))
 
     console = Console()
     console.print(table)
