@@ -126,7 +126,6 @@ def run(src_dir, config):
                         except Exception as e :
                             logger.debug(neg_filename + " not exists")
                             continue
-                        error_stmt = extract_info.find_error_stmt(neg_file_node, int(localize_line))
 
                         if neg_filename == filename and neg_funcname == funcname :
                             neg_args = dict()
@@ -157,12 +156,14 @@ def run(src_dir, config):
                                     continue
 
                                 pos_typs.add(typ)
-
+                    error_stmt = extract_info.find_error_stmt(neg_file_node, int(localize_line))
                     # Neg Guard
 
                     error_is_if_stmt = False
                     if isinstance(error_stmt, ast.If) :
                         error_is_if_stmt = True
+
+                    # print(error_is_if_stmt)
 
                     def find_node(node) :
                         for child in ast.walk(node) :

@@ -68,6 +68,10 @@ def run(src_dir, config) :
     with open(info_directory / PATCH_GENERATE_FOLDER_NAME / "patch_info.txt") as f :
         patch_count = int(f.read())
 
+    if patch_count == 0:
+        logger.info("No patch generated")
+        return
+
     is_first = True
     first_patch = None
 
