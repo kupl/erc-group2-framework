@@ -358,12 +358,16 @@ class TemplateCompeleter(ast.NodeVisitor) :
             return "Unknown"
         
         for return_expr in return_list :
-            
+            try:
+                node = ast.unparse(self.node)
+            except AttributeError as e:
+                node = ast.unparse(ast.fix_missing_locations(self.node))
+
             patch_info =  {
                 "patchType": "return", 
                 "patchValue": get_type(return_expr),
                 "neg_args": self.neg_args,
-                "node": ast.unparse(self.node)
+                "node": node
             }
             self.complete_list.append((return_expr, patch_info))
 
