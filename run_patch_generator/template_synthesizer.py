@@ -252,6 +252,7 @@ class TemplateCompeleter(ast.NodeVisitor) :
         #         break
         def get_type(node):
             if isinstance(node, ast.Constant):
+                
                 return type(node.value).__name__
             return "Unknown"
 
@@ -354,6 +355,7 @@ class TemplateCompeleter(ast.NodeVisitor) :
         #         break
         def get_type(node):
             if isinstance(node, ast.Constant):
+
                 return type(node.value).__name__
             return "Unknown"
         

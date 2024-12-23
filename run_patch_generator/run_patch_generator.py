@@ -130,6 +130,10 @@ def run(src_dir, config):
                         if neg_filename == filename and neg_funcname == funcname :
                             neg_args = dict()
                             try :
+                                # drop test local type
+                                neg_typs = [typ for typ in neg_info['args'][arg_name] if '<locals>' not in typ or '::' not in typ]
+                                if len(neg_typs) == 0 :
+                                    continue
                                 neg_args[arg_name] = neg_info['args'][arg_name]
                             except :
                                 # 같은 line 다른 neg_info
