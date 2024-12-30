@@ -579,6 +579,9 @@ class TemplateSynthesizer(ast.NodeTransformer) :
                 if complete == 'empty' :
                     continue
 
+                if isinstance(complete, ast.Slice):
+                    continue
+
                 if isinstance(complete, tuple):
                     patch_info = complete[1]
                     complete = complete[0]
