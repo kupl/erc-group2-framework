@@ -635,6 +635,16 @@ class MakeTemplate() :
 
             if target is None : # none else 할게 없음
                 return template_info_list
+            
+            # Check if target is modified
+            if isinstance(copy_stmt, ast.Assign):
+                name = copy_stmt.targets[0]
+                if name == target:
+                    return template_info_list
+
+            if isinstance(copy_stmt, (ast.AugAssign, ast.AnnAssign)):
+                if copy_stmt.target == target:
+                    return template_info_list
 
             stmt_list[i] = copy_stmt
 
