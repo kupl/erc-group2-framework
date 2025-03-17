@@ -10,6 +10,7 @@ import subprocess
 import shutil
 from contextlib import redirect_stdout
 import io
+import time
 
 import logger
 logger = logger.set_logger(os.path.basename(__file__))
@@ -57,13 +58,16 @@ def preprocessing(config) :
 
     collect_types.init_types_collection(test_option=test_option, test_func=test_methods)
     f = io.StringIO()
-    logger.info("Run Negative Test Cases...")
+    log_message = "Run Negative Test Cases..."
+    start_time = time.time()  # 시작 시간 기록
+    logger.info(log_message)
     with redirect_stdout(f):
         with collect_types.collect():
             # print(test_option)
             result = pytest.main(test_option)
     collect_types.stop_types_collection()
-    logger.info("Run Negative Test Cases... Done!")
+    elapsed_time = time.time() - start_time
+    logger.info(f"{log_message} Done! (Elapsed Time: {elapsed_time:.2f} sec)")
 
     result = f.getvalue()
 

@@ -2,6 +2,7 @@ import argparse
 import os
 from pathlib import Path
 import json
+import time
 
 from .type_difference import TypeDifference
 from .ranking_localization import get_ranking_localize
@@ -40,11 +41,13 @@ def run(config):
     with open(info_directory / "pos_localize.json") as f :
         pos_localize = json.load(f)
 
+    start_time = time.time()  # 시작 시간 기록
     type_diff = TypeDifference(neg_infos, pos_info)
     type_diff_result = type_diff.scoring_by_function_line()
     ranking_localize = get_ranking_localize(neg_localize, pos_localize, type_diff_result)
+    elapsed_time = time.time() - start_time
 
-    logger.info("Run Fault Localization... Done!")
+    logger.info("Run Fault Localization... Done! (Elapsed Time: {:.2f} sec)".format(elapsed_time))
 
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("File", style="cyan")

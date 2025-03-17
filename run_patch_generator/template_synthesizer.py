@@ -583,6 +583,8 @@ class TemplateSynthesizer(ast.NodeTransformer) :
                     continue
 
                 if isinstance(complete, tuple):
+                    if complete[0] is None:
+                        continue
                     patch_info = complete[1]
                     complete = complete[0]
                     

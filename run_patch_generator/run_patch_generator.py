@@ -7,6 +7,8 @@ import ast
 import glob
 import os
 from copy import copy, deepcopy
+import time
+from datetime import timedelta
 
 from const import (
     FAULT_LOCALIZER_FOLDER,
@@ -30,6 +32,9 @@ from rich.console import Console
 from rich.live import Live
 from rich.spinner import Spinner
 from rich.panel import Panel
+from rich.panel import Panel
+from rich.spinner import Spinner
+
 
 # Configure the logger
 console = Console()
@@ -105,6 +110,8 @@ def run(src_dir, config):
     files, files_src = my_ast.get_asts(src_dir)
     synthe = Synthesize(files_src, files, neg_func_infos)
 
+    start_time = time.time()
+
     with Live(console=console, refresh_per_second=5) as live:
         spinner = Spinner("dots", text="[cyan]Generating Patches...[/cyan]")
         live.update(Panel(spinner))
@@ -112,7 +119,11 @@ def run(src_dir, config):
             for localize_list in rank_by_type.values():
                 for localize in localize_list:
                     from .save_patch import PATCH_COUNT
-                    spinner = Spinner("dots", text=f"[cyan]Generating Patches...[/cyan] {PATCH_COUNT} patches generated")
+                    # 수행된 시간 계산
+                    elapsed_time = time.time() - start_time
+                    formatted_time = str(timedelta(seconds=int(elapsed_time)))  # HH:MM:SS 형식 변환
+                
+                    spinner = Spinner("dots", text=f"[cyan]Generating Patches...[/cyan] {formatted_time} elapsed | {PATCH_COUNT} patches generated")
 
                     live.update(Panel(spinner))
                     (filename, funcname, localize_line) = localize['localize']

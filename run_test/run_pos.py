@@ -12,6 +12,7 @@ import shutil
 from contextlib import redirect_stdout
 import io
 import logger
+import time
 
 logger = logger.set_logger(os.path.basename(__file__))
 
@@ -35,18 +36,15 @@ def preprocessing(config) :
 
     collect_types.init_types_collection(negative_info=neg)
     f = io.StringIO()
-    logger.info("Run Positive Test Cases...")
+    log_message = "Run Positive Test Cases..."
+    start_time = time.time()  # 시작 시간 기록
+    logger.info(log_message)
     with redirect_stdout(f):
         with collect_types.collect():
             pytest.main(test_option)
     collect_types.stop_types_collection()
-    logger.info("Run Positive Test Cases... Done!")
-    # with Live(MY_PANEL.get_panel("Running Positive Test Cases..."), refresh_per_second=20) as live:
-    #     with redirect_stdout(f):
-    #         with collect_types.collect():
-    #             pytest.main(test_option)
-
-    #     live.update(MY_PANEL.update("Running Positive Test Cases... Done!"))
+    elapsed_time = time.time() - start_time
+    logger.info(f"{log_message} Done! (Elapsed Time: {elapsed_time:.2f} sec)")
 
     args, result, localize = collect_types.pos_stats()
     
