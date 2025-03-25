@@ -36,6 +36,8 @@ def git_diff_style(a, b):
     console = Console()
     console.print(syntax)
 
+    return diff_text
+
 def run(src_dir, config) :
     '''
     This is the function which run validator.
@@ -126,6 +128,7 @@ def run(src_dir, config) :
     # raise Exception("Not Implemented")
     logger.info("Run Validator... Done!")
 
+    validate_outputs = []
     # print top 5 patches
     logger.info("Print Top 5 patches")
     for i in range(5):
@@ -150,7 +153,19 @@ def run(src_dir, config) :
         with open(patch_info["filename"]) as f :
             target = ast.unparse(ast.parse(f.read()))
 
-        git_diff_style(target, patch)
+        diff_result = git_diff_style(target, patch)
+
+        validate_output = {
+            "patch_id": patch_list[i],
+            "patch_file_path": str(write_directory / f'{patch_list[i]}.py'),
+            "target_file_path": str(patch_info["filename"]),
+            "diff": diff_result
+        }
+
+        validate_outputs.append(validate_output)
+
+    with open(info_directory / VALIDATOR_FOLDER_NAME / "top_5_patches.json", 'w') as f:
+        json.dump(validate_outputs, f, indent=4)
 
     # save the output of validator
     patch_result = [{"patch_id": patch_id, "rank": i} for i, patch_id in enumerate(patch_list)]

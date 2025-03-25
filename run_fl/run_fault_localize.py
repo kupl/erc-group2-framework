@@ -9,7 +9,8 @@ from .ranking_localization import get_ranking_localize
 
 from const import (
     FAULT_LOCALIZER_FOLDER,
-    FAULT_LOCALIZER_OUTPUT
+    FAULT_LOCALIZER_OUTPUT,
+    FAULT_LOCALIZER_DATA
 )
 
 from rich.table import Table
@@ -58,6 +59,7 @@ def run(config):
     table.add_column("SBFL Score", style="blue")
 
     # table_column_set = set()
+    fl_outputs = []
 
     for i, rank_by_type in enumerate(ranking_localize) : # type difference 가장 큰 순으로
         for score, localize_list in rank_by_type.items() : # sbfl 점수 순서대로 나옴
@@ -68,7 +70,21 @@ def run(config):
                 # if localize['localize'] in table_column_set :
                 #     continue
                 # table_column_set.add(localize['localize'])
+                fl_output = {
+                    "filename": filename,
+                    "funcname": funcname,
+                    "localize_line": localize_line,
+                    "target_var": target_var,
+                    "rank_by_function": i+1,
+                    "score": round(score, 3)
+                }
+
+                fl_outputs.append(fl_output)
+
                 table.add_row(filename, funcname, localize_line, target_var, str(i+1), str(round(score, 3)))
+
+    # sort fl_outputs
+    fl_outputs.sort(key=lambda x: (x['rank_by_function'], -x['score']), reverse=False)
 
     console = Console()
     console.print(table)
@@ -79,6 +95,9 @@ def run(config):
 
     with open(info_directory / FAULT_LOCALIZER_OUTPUT, 'w') as f:
         json.dump(ranking_localize, f, indent=4)
+
+    with open(info_directory / FAULT_LOCALIZER_DATA, 'w') as f:
+        json.dump(fl_outputs, f, indent=4)
 
     # raise Exception("Not Implemented")
 
