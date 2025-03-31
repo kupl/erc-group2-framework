@@ -39,6 +39,13 @@ from rich.spinner import Spinner
 # Configure the logger
 console = Console()
 
+def normalize_type(typ):
+    # numpy normalize
+    if typ.startswith("numpy.ndarray"):
+        typ = "numpy.ndarray"
+
+    return typ
+
 
 class MyAST() :
     def __init__(self, usage_file) :
@@ -142,9 +149,10 @@ def run(src_dir, config):
                             neg_args = dict()
                             try :
                                 # drop test local type
-                                neg_typs = [typ for typ in neg_info['args'][arg_name] if '<locals>' not in typ or '::' not in typ]
+                                neg_typs = [normalize_type(typ) for typ in neg_info['args'][arg_name] if '<locals>' not in typ or '::' not in typ]
                                 if len(neg_typs) == 0 :
                                     continue
+
                                 neg_args[arg_name] = neg_info['args'][arg_name]
                             except :
                                 # 같은 line 다른 neg_info
@@ -169,7 +177,7 @@ def run(src_dir, config):
                                 typ = pos_sample['info'].get(arg_name, None)
                                 if typ is None :
                                     continue
-
+                                typ = normalize_type(typ)
                                 pos_typs.add(typ)
                     error_stmt = extract_info.find_error_stmt(neg_file_node, int(localize_line))
                     # Neg Guard
@@ -206,6 +214,8 @@ def run(src_dir, config):
                                 if len(neg_typ) == 1 :
                                     neg_typ = neg_typ[0]
 
+                                neg_typ = normalize_type(neg_typ)
+
                                 add_guard = AddGuard(neg_file_node)
                                 complete_list = add_guard.get_guard_list({arg_node : {neg_typ : 1}}, error_stmt, True)
 
@@ -233,6 +243,8 @@ def run(src_dir, config):
                     for arg, typ in neg_args.items() :
                         if arg == 'self' :
                             continue 
+
+                        typ = [normalize_type(t) for t in typ]
 
                         candidate_templates = list()
                         import itertools
