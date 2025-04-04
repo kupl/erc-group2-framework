@@ -100,7 +100,8 @@ python run.py \
 python run_test.py --config [config_directory]
 ```
 
-결과물은 ``<config 경로의 상위 폴더>` 디렉토리에 저장된다.
+결과물은 `<config 경로의 상위 폴더>` 디렉토리에 저장된다.
+추가적으로 `-n` 혹은 `--only-neg` 옵션을 주면 Negative 테스트케이스만 실행한다. 
 
 - 오류 위치 추정기 실행:
 
