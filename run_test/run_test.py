@@ -11,7 +11,7 @@ logger = logger.set_logger(os.path.basename(__file__))
 def run(config, only_neg) :
     # logger.info("Run Test")
     run_neg.preprocessing(config)
-    if only_neg:
+    if not only_neg:
         run_pos.preprocessing(config)
     # logger.info("Done Test")
 
