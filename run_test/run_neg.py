@@ -75,6 +75,8 @@ def preprocessing(config) :
     errors = []
     err_code = ''
 
+    # print(result)
+
     for line in result.split('\n'):
         if '___ test' in line:
             start = True
@@ -87,10 +89,18 @@ def preprocessing(config) :
             err_code = ''
         elif start:
             err_code += line + '\n'
-        
-        
-        
+
+    if not errors:
+        new_error_code = ""
+        for msg in err_code.split('\n'):
+            if "short test summary info" in msg:
+                new_error_code += msg.replace(' short test summary info ', '-' * len(' short test summary info '))
+                break
+            else:
+                new_error_code += msg + '\n'
     
+        errors.append(new_error_code)
+
     for error in errors:
         print_pretty_traceback(error)
 

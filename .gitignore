@@ -6,3 +6,4 @@ __pycache__
 .coverage
 test_info/*
 !test_info/sample.json
+toy*
