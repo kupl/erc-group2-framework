@@ -40,9 +40,10 @@ from rich.spinner import Spinner
 console = Console()
 
 def normalize_type(typ):
-    # numpy normalize
-    if typ.startswith("numpy.ndarray"):
-        typ = "numpy.ndarray"
+    if isinstance(typ, str):
+        # numpy normalize
+        if typ.startswith("numpy.ndarray"):
+            typ = "numpy.ndarray"
 
     return typ
 

@@ -136,7 +136,7 @@ class Validator() :
             ok_messages = [str(total_test_num + len(test)) + " passed"]
             #print(ok_messages)
         else :
-            ok_messages = ["OK", "100%"] # 이거 있으면 오키
+            ok_messages = ["OK", "100%", "/ 0 selected"] # 이거 있으면 오키
 
         if not test :
             for message in fail_messages :
