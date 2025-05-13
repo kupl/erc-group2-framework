@@ -78,6 +78,7 @@ def run(src_dir, config) :
     first_patch = None
 
     patch_list = []
+    no_plausible_patches = []
 
     with Progress(f"Validator",BarColumn(),TaskProgressColumn(), SpinnerColumn(), TimeElapsedColumn(), TextColumn("{task.completed}/{task.total}") ) as progress:
         task = progress.add_task("",total = patch_count)
@@ -106,6 +107,7 @@ def run(src_dir, config) :
                     infer_list = infer.get_return_typ_list(node)
 
                     if patch_info['patchValue'] not in infer_list:
+                        no_plausible_patches.append(i)
                         continue
 
 
@@ -124,6 +126,35 @@ def run(src_dir, config) :
                 if is_first:
                     first_patch = i
                     is_first = False
+
+    if not patch_list:
+        # Test no plausible patches
+        with Progress(f"Test Other Patches",BarColumn(),TaskProgressColumn(), SpinnerColumn(), TimeElapsedColumn(), TextColumn("{task.completed}/{task.total}") ) as progress:
+            task = progress.add_task("",total = len(no_plausible_patches))
+            i = 0
+            while not progress.finished:
+                i += 1
+                progress.update(task, advance=1)
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{no_plausible_patches[i]}-info.json') as f :
+                    patch_info = json.load(f)
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{no_plausible_patches[i]}.py') as f :
+                    patch = ast.parse(f.read())
+                
+                exec_prog = Execute(src_dir, project_name, pytest_info)
+                validator = Validator(exec_prog)
+
+                try:
+                    validator.validate(patch, patch_info['filename'], target, test)
+                except PassAllTests as e:
+                    logger.info(f"{i}th patch validated")
+                    patch_list.append(i)
+                    # copy the patch.py and patch-info.json to the folder
+                    shutil.copy(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py', write_directory / f'{i}.py')
+                    shutil.copy(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json', write_directory / f'{i}-info.json')
+
+                    if is_first:
+                        first_patch = i
+                        is_first = False
     
     # raise Exception("Not Implemented")
     logger.info("Run Validator... Done!")
