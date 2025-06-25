@@ -86,12 +86,15 @@ def run(src_dir, config) :
         while not progress.finished:
             i += 1
             progress.update(task, advance=1)
-            with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json') as f :
-                patch_info = json.load(f)
-            with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-target.py') as f :
-                target = ast.parse(f.read())
-            with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py') as f :
-                patch = ast.parse(f.read())
+            try:
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-info.json') as f :
+                    patch_info = json.load(f)
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}-target.py') as f :
+                    target = ast.parse(f.read())
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{i}.py') as f :
+                    patch = ast.parse(f.read())
+            except SyntaxError as e:
+                continue
             
             # patch_generator_folder = src_dir.parent / PATCH_GENERATE_FOLDER_NAME
 
@@ -112,7 +115,10 @@ def run(src_dir, config) :
 
 
             exec_prog = Execute(src_dir, project_name, pytest_info)
-            validator = Validator(exec_prog)
+            try:
+                validator = Validator(exec_prog)
+            except SyntaxError as e:
+                continue
 
             try:
                 validator.validate(patch, patch_info['filename'], target, test)
@@ -135,13 +141,16 @@ def run(src_dir, config) :
             while not progress.finished:
                 i += 1
                 progress.update(task, advance=1)
-                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{no_plausible_patches[i]}-info.json') as f :
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{no_plausible_patches[i-1]}-info.json') as f :
                     patch_info = json.load(f)
-                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{no_plausible_patches[i]}.py') as f :
+                with open(info_directory / PATCH_GENERATE_FOLDER_NAME / f'{no_plausible_patches[i-1]}.py') as f :
                     patch = ast.parse(f.read())
                 
                 exec_prog = Execute(src_dir, project_name, pytest_info)
-                validator = Validator(exec_prog)
+                try:
+                    validator = Validator(exec_prog)
+                except SyntaxError as e:
+                    continue
 
                 try:
                     validator.validate(patch, patch_info['filename'], target, test)

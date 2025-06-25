@@ -96,7 +96,7 @@ class TemplateCompeleter(ast.NodeVisitor) :
             if output_type == 'bytes' :
                 return_list.append(self.make_constant(b""))    
 
-            if output_type == 'None' :
+            if output_type == 'None':
                 return_list.append(self.make_constant(None))
 
         extractor = ReturnExtractor(self.funcname)
@@ -575,6 +575,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
 
             complete_num = 0
             patch_info = {}
+
             for i, complete in enumerate(completes) :
                 if complete == 'empty' :
                     continue
@@ -587,9 +588,7 @@ class TemplateSynthesizer(ast.NodeTransformer) :
                         continue
                     patch_info = complete[1]
                     complete = complete[0]
-                    
                 template, target = inserter.modify_node(complete, targets[i])
-
                 templates.append(template)
                 targets[i] = target
                 complete_num += 1
@@ -605,10 +604,23 @@ class TemplateSynthesizer(ast.NodeTransformer) :
             save_patch(final_node, target, filename=self.filename, config=config, patch_info=patch_info)
 
             # 돌려놓기
-            for i, template in enumerate(templates) :
+            for i, template in enumerate(templates) :     
                 if template is None :
                     continue
-                target = inserter.revert_node(template, completes[i], node)
+
+                if isinstance(completes[i], tuple):
+                    complete = completes[i][0]
+
+                else:
+                    complete = completes[i]
+
+                revert_node = inserter.revert_node(template, complete, node)
+                revert_node = ast.fix_missing_locations(copy.deepcopy(revert_node))
+                revert_targets = find_template.get_target(revert_node)
+
+                targets[i] = revert_targets[0]
+                # print(ast.unparse(ast.fix_missing_locations(target)))
+                # input()
             targets = find_template.get_target(node)
 
 

@@ -19,6 +19,7 @@ from const import (
 
 from util import abstract_type_list, get_info_directory
 from .add_guard import AddGuard
+from .add_typecasting import AddTypeCasting
 from .template import FindTemplate, TemplateMethod, BASIC, MakeTemplate
 from .select_template import Selector
 from .synthesize import Synthesize
@@ -229,8 +230,71 @@ def run(src_dir, config):
 
                                     save_patch(node, target, filename, config)
                                     # self.validate.validate(node, neg_filename, targets, test, self.total_test_num)
+                    def pos_guard() :                                         
+                        if len(pos_typs) >= 1 :
+                            var_score = dict()
+                            arg_node = None
+                            arg_node = find_node(error_stmt)
+                            abs_pos_typs = tuple(set(abstract_type_list(pos_typs)))
+                                
+                            if arg_node is not None :
+                                
+                                def pos_typecast() :
+                                    if len(abs_pos_typs) == 1 :
+                                        var_score[arg_node] = {abs_pos_typs[0] : 1}
 
-                    neg_guard()
+                                        add_typecasting = AddTypeCasting()
+                                        complete_list = add_typecasting.get_typecasting_list(var_score, neg_args, neg_file_node)
+                                        # 단순 TypeCasting
+                                        for node in complete_list :
+                                            #continue
+                                            find_template = FindTemplate()
+                                            targets = find_template.get_target(node)
+
+                                            target = targets[0]
+
+                                            save_patch(node, target, filename, config)
+
+                                            # self.validate.validate(node, neg_filename, targets, test, self.total_test_num)
+
+                                var_score[arg_node] = {abs_pos_typs : 1}
+
+                                def pos_onlyguard() :
+                                    # Add Guard
+
+                                    if error_is_if_stmt :
+                                        # Pos Guard
+                                        add_guard = AddGuard(neg_file_node)
+                                        complete_list = add_guard.get_guard_list({arg_node: {abs_pos_typs[0] : 1}}, error_stmt, False)
+
+                                        for node in complete_list :
+                                            #continue
+                                            find_template = FindTemplate()
+                                            targets = find_template.get_target(node)
+
+                                            target = targets[0]
+                                            save_patch(node, target, filename, config)
+
+                                            # self.validate.validate(node, neg_filename, targets, test, self.total_test_num)
+
+                                if '[' in arg_name:
+                                    # var_score[arg_node] = {abs_pos_typs : 1}
+                                    pos_onlyguard()
+                                    pos_typecast()
+                                    # var_score[arg_node] = {abs_pos_typs : 1}
+                                else :
+                                    pos_typecast()
+                                    # var_score[arg_node] = {abs_pos_typs : 1}
+                                    pos_onlyguard()
+
+
+                    if '[' in arg_name: # iterable 타입은 여러 타입을 가질 수 있으므로 pos_guard부터
+                        pos_guard()
+                        neg_guard()
+                    else :   
+                        neg_guard()    
+                        pos_guard()
+                    # neg_guard()
 
                     # Make Other Patch
 
