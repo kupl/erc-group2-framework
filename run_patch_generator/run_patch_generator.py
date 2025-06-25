@@ -222,6 +222,18 @@ def run(src_dir, config):
                                 complete_list = add_guard.get_guard_list({arg_node : {neg_typ : 1}}, error_stmt, True)
 
                                 for node in complete_list :
+                                    if '.' in neg_typ:
+                                        top_module = neg_typ.split('.')[0]
+                                        # make import statement
+                                        make_import = True
+                                        for n in node.body:
+                                            if isinstance(n, ast.Import) and any(alias.name == top_module for alias in n.names):
+                                                make_import = False
+                                                break
+                                        if top_module and make_import:
+                                            import_node = ast.Import(names=[ast.alias(name=top_module, asname=None)])
+                                            node.body.insert(0, import_node)
+
                                     #continue
                                     find_template = FindTemplate()
                                     targets = find_template.get_target(node)
@@ -248,6 +260,18 @@ def run(src_dir, config):
                                         # 단순 TypeCasting
                                         for node in complete_list :
                                             #continue
+                                            if '.' in abs_pos_typs[0]:
+                                                top_module = abs_pos_typs[0].split('.')[0]
+                                                # make import statement
+                                                make_import = True
+                                                for n in node.body:
+                                                    if isinstance(n, ast.Import) and any(alias.name == top_module for alias in n.names):
+                                                        make_import = False
+                                                        break
+                                                if top_module and make_import:
+                                                    import_node = ast.Import(names=[ast.alias(name=top_module, asname=None)])
+                                                    node.body.insert(0, import_node)
+
                                             find_template = FindTemplate()
                                             targets = find_template.get_target(node)
 
@@ -268,6 +292,18 @@ def run(src_dir, config):
                                         complete_list = add_guard.get_guard_list({arg_node: {abs_pos_typs[0] : 1}}, error_stmt, False)
 
                                         for node in complete_list :
+                                            if '.' in abs_pos_typs[0]:
+                                                top_module = abs_pos_typs[0].split('.')[0]
+                                                # make import statement
+                                                make_import = True
+                                                for n in node.body:
+                                                    if isinstance(n, ast.Import) and any(alias.name == top_module for alias in n.names):
+                                                        make_import = False
+                                                        break
+                                                if top_module and make_import:
+                                                    import_node = ast.Import(names=[ast.alias(name=top_module, asname=None)])
+                                                    node.body.insert(0, import_node)
+
                                             #continue
                                             find_template = FindTemplate()
                                             targets = find_template.get_target(node)
