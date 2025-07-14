@@ -51,8 +51,28 @@ def preprocessing(config) :
     test_methods = list()
     for test_method in test_option :
         place = test_method.rfind(':')
+        if place == -1:
+            continue
+
         test_method = test_method[place+1:]
         test_methods.append(test_method)
+
+    if not test_methods:
+        # Read from the file if no test methods are provided
+        file_name = None
+        for test_file in test_option:
+            if test_file.endswith('.py'):
+                file_name = test_file
+                break
+
+        if file_name:
+            with open(file_name, 'r') as file:
+                lines = file.readlines()
+                for line in lines:
+                    if line.strip().startswith('def test_'):
+                        test_method = line.strip().split('(')[0][4:]
+                        if "_neg" in test_method:  # Only include negative tests
+                            test_methods.append(test_method)
 
     test_option = ['--tb=short'] + test_option
 
