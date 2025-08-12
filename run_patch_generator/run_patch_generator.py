@@ -141,13 +141,12 @@ def run(src_dir, config):
                     for neg_info in neg_infos :
                         (neg_filename, neg_funcname) = get_neg_filename_funcname(neg_info)
 
-                        try:
-                            neg_file_node = deepcopy(files[neg_filename])
-                        except Exception as e :
-                            logger.debug(neg_filename + " not exists")
-                            continue
-
                         if neg_filename == filename and neg_funcname == funcname :
+                            try:
+                                neg_file_node = deepcopy(files[neg_filename])
+                            except Exception as e :
+                                logger.debug(neg_filename + " not exists")
+                                continue
                             neg_args = dict()
                             try :
                                 # drop test local type
