@@ -98,7 +98,7 @@ def preprocessing(config) :
     # print(result)
 
     for line in result.split('\n'):
-        if '___ test' in line:
+        if '___ test' in line or '___ Test' in line:
             start = True
 
         if start and '--- Captured' in line:
